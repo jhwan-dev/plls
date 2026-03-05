@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>plls — share what you feel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --dark: #111111;
+    --dark2: #181818;
+    --dark3: #222222;
+    --green: #1DB954;
+    --green-dim: #1aa34a;
+    --green-glow: rgba(29,185,84,0.15);
+    --green-subtle: rgba(29,185,84,0.07);
+    --white: #ffffff;
+    --gray: #b3b3b3;
+    --gray-dim: #535353;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--green); border-radius: 2px; }
+
+  /* ========== PAGES ========== */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ========== NAV ========== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--green);
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-shadow:
+      0 0 20px rgba(29,185,84,0.7),
+      0 0 40px rgba(29,185,84,0.35),
+      0 0 80px rgba(29,185,84,0.15);
+    position: relative;
+  }
+  .nav-logo::before {
+    content: '';
+    position: absolute;
+    inset: -12px -24px;
+    background: radial-gradient(ellipse 120% 200% at 50% 50%, rgba(29,185,84,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: logoPulse 3s ease-in-out infinite;
+  }
+  @keyframes logoPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+  .nav-logo:hover { opacity: 0.9; text-shadow: 0 0 28px rgba(29,185,84,0.9), 0 0 56px rgba(29,185,84,0.5), 0 0 100px rgba(29,185,84,0.2); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    cursor: pointer;
+    transition: color 0.2s;
+    text-decoration: none;
+  }
+  .nav-link:hover { color: var(--white); }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .btn-login {
+    padding: 8px 24px;
+    background: transparent;
+    border: 1px solid var(--white);
+    border-radius: 20px;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-login:hover {
+    background: var(--white);
+    color: var(--black);
+    transform: scale(1.03);
+  }
+
+  .btn-green {
+    padding: 8px 24px;
+    background: var(--green);
+    border: none;
+    border-radius: 20px;
+    color: var(--black);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-green:hover { background: #1ed760; transform: scale(1.03); }
+
+  /* ========== HOME PAGE ========== */
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding-top: 64px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 30%, rgba(29,185,84,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 80% 60%, rgba(29,185,84,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 20% 70%, rgba(29,185,84,0.04) 0%, transparent 60%);
+  }
+
+  .hero-noise {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .hero-content {
+    position: relative;
+    text-align: center;
+    z-index: 2;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 24px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 15vw, 180px);
+    line-height: 0.9;
+    letter-spacing: 8px;
+    color: var(--white);
+    animation: fadeUp 0.8s 0.1s ease both;
+    text-shadow:
+      0 0 40px rgba(29,185,84,0.5),
+      0 0 80px rgba(29,185,84,0.25),
+      0 0 160px rgba(29,185,84,0.12);
+    position: relative;
+  }
+
+  .hero-title::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 140%;
+    height: 200%;
+    background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(29,185,84,0.13) 0%, rgba(29,185,84,0.05) 40%, transparent 70%);
+    pointer-events: none;
+    animation: heroGlowPulse 4s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  @keyframes heroGlowPulse {
+    0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  }
+
+  .hero-title span { color: var(--green); }
+
+  .hero-sub {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: clamp(16px, 2vw, 22px);
+    color: var(--gray);
+    margin-top: 20px;
+    letter-spacing: 0.5px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-cta {
+    margin-top: 48px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .hero-cta .btn-green {
+    padding: 14px 36px;
+    font-size: 14px;
+    border-radius: 30px;
+  }
+
+  .hero-cta .btn-outline {
+    padding: 14px 36px;
+    font-size: 14px;
+    border-radius: 30px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hero-cta .btn-outline:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray-dim);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: fadeUp 1s 0.6s ease both;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--green), transparent);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  /* ========== SECTION LAYOUTS ========== */
+  .section {
+    padding: 80px 48px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 3px;
+    color: var(--white);
+    position: relative;
+  }
+
+  .section-title::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 2px;
+    background: var(--green);
+    margin-top: 6px;
+  }
+
+  .section-title .en {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--gray);
+    letter-spacing: 1px;
+    margin-left: 12px;
+  }
+
+  .see-all {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s;
+    border-bottom: 1px solid var(--gray-dim);
+    padding-bottom: 1px;
+  }
+  .see-all:hover { color: var(--green); border-color: var(--green); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 48px;
+  }
+
+  /* ========== TODAY'S PLAYLISTS ========== */
+  .playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .playlist-card {
+    background: var(--dark2);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
+    position: relative;
+  }
+  .playlist-card:hover {
+    background: var(--dark3);
+    border-color: var(--border);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+  }
+
+  .playlist-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+    position: relative;
+  }
+
+  .playlist-cover-img {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .play-overlay {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 20px rgba(29,185,84,0.4);
+  }
+
+  .playlist-card:hover .play-overlay {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .play-overlay svg {
+    fill: var(--black);
+    margin-left: 3px;
+  }
+
+  .playlist-info {
+    padding: 14px 16px 16px;
+  }
+
+  .playlist-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--white);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .playlist-uploader {
+    font-size: 12px;
+    color: var(--gray);
+    margin-bottom: 10px;
+  }
+
+  .playlist-uploader span {
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .playlist-uploader span:hover { color: var(--white); }
+
+  .playlist-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .meta-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--gray-dim);
+    cursor: pointer;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+  }
+  .meta-btn:hover { color: var(--green); }
+  .meta-btn.liked { color: var(--green); }
+
+  .meta-btn svg { width: 14px; height: 14px; }
+
+  /* ========== TODAY'S UPLOADERS ========== */
+  .uploaders-row {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  .uploaders-row::-webkit-scrollbar { display: none; }
+
+  .uploader-card {
+    flex: 0 0 160px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .uploader-card:hover { transform: translateY(-4px); }
+
+  .uploader-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    overflow: hidden;
+  }
+
+  .uploader-card:hover .uploader-avatar { border-color: var(--green); }
+
+  .uploader-avatar.hot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--green), #00d4ff, var(--green));
+    z-index: -1;
+    animation: rotateBorder 3s linear infinite;
+  }
+
+  @keyframes rotateBorder {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .uploader-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+
+  .uploader-stat {
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .uploader-followers {
+    font-size: 11px;
+    color: var(--gray-dim);
+    margin-top: 2px;
+  }
+
+  .follow-btn {
+    margin-top: 10px;
+    padding: 5px 16px;
+    background: transparent;
+    border: 1px solid var(--gray-dim);
+    border-radius: 12px;
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.2s;
+  }
+  .follow-btn:hover { border-color: var(--white); }
+  .follow-btn.following { background: var(--green); border-color: var(--green); color: var(--black); }
+
+  /* ========== CELEB PLLS ========== */
+  .celeb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .celeb-card {
+    background: linear-gradient(135deg, var(--dark2), var(--dark));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    gap: 0;
+    position: relative;
+  }
+  .celeb-card:hover {
+    border-color: rgba(29,185,84,0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(29,185,84,0.1);
+  }
+
+  .celeb-cover {
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    position: relative;
+  }
+
+  .celeb-info {
+    padding: 16px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .celeb-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--green-subtle);
+    border: 1px solid rgba(29,185,84,0.3);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+
+  .celeb-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+
+  .celeb-playlist-name {
+    font-size: 12px;
+    color: var(--gray);
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .celeb-likes {
+    font-size: 11px;
+    color: var(--gray-dim);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ========== LOGIN PAGE ========== */
+  .login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(29,185,84,0.08) 0%, transparent 70%);
+  }
+
+  .login-box {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 420px;
+    padding: 48px;
+    background: rgba(24,24,24,0.95);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    text-align: center;
+  }
+
+  .login-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 6px;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+
+  .login-tagline {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 40px;
+  }
+
+  .login-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .login-desc {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .spotify-login-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--green);
+    border: none;
+    border-radius: 30px;
+    color: var(--black);
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .spotify-login-btn:hover { background: #1ed760; transform: scale(1.02); }
+
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    color: var(--gray-dim);
+    font-size: 12px;
+  }
+  .login-divider::before, .login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .login-terms {
+    font-size: 11px;
+    color: var(--gray-dim);
+    line-height: 1.6;
+    margin-top: 24px;
+  }
+  .login-terms span { color: var(--gray); cursor: pointer; text-decoration: underline; }
+
+  .back-btn {
+    margin-top: 24px;
+    background: none;
+    border: none;
+    color: var(--gray);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    margin-right: auto;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--white); }
+
+  /* ========== PROFILE PAGE ========== */
+  .profile-header {
+    background: linear-gradient(to bottom, rgba(29,185,84,0.15), transparent);
+    padding: 100px 48px 40px;
+  }
+
+  .profile-top {
+    display: flex;
+    align-items: flex-end;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+
+  .profile-avatar-lg {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 3px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--dark2);
+  }
+
+  .profile-meta { flex: 1; }
+
+  .profile-type {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .profile-username {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 6vw, 80px);
+    letter-spacing: 3px;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .profile-bio {
+    font-size: 14px;
+    color: var(--gray);
+    margin-bottom: 16px;
+    font-style: italic;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .profile-stats {
+    display: flex;
+    gap: 32px;
+    font-size: 13px;
+    color: var(--gray);
+  }
+
+  .profile-stat strong {
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .profile-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  /* ========== UPLOAD MODAL ========== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 24px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--gray);
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--white); }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--dark3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .form-input:focus { border-color: var(--green); }
+  .form-input::placeholder { color: var(--gray-dim); }
+
+  .photo-upload-area {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .photo-upload-area:hover { border-color: var(--green); background: var(--green-subtle); }
+
+  .photo-upload-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .photo-upload-text {
+    font-size: 13px;
+    color: var(--gray);
+  }
+  .photo-upload-text strong { color: var(--green); }
+
+  /* ========== COMMENT MODAL ========== */
+  .comment-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+  }
+
+  .comment-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .comment-item:last-child { border-bottom: none; }
+
+  .comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .comment-body { flex: 1; }
+  .comment-user {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+  .comment-text {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.5;
+  }
+  .comment-time {
+    font-size: 10px;
+    color: var(--gray-dim);
+    margin-top: 4px;
+  }
+
+  .comment-input-row {
+    display: flex;
+    gap: 10px;
+  }
+  .comment-input-row .form-input {
+    flex: 1;
+  }
+
+  /* ========== ANIMATIONS ========== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .fade-in { animation: fadeIn 0.5s ease both; }
+
+  /* ========== TOAST ========== */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--dark3);
+    border: 1px solid var(--green);
+    border-radius: 24px;
+    padding: 12px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    z-index: 300;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .section { padding: 60px 20px; }
+    .divider { margin: 0 20px; }
+    .playlists-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .celeb-grid { grid-template-columns: 1fr; }
+    .hero-title { font-size: 72px; }
+    .profile-header { padding: 100px 20px 30px; }
+    .profile-top { flex-direction: column; align-items: flex-start; }
+    .modal { margin: 16px; padding: 28px; }
+  }
+
+  /* Spotify-style color gradients for cards */
+  .grad-1 { background: linear-gradient(135deg, #1a3a2a, #0d1f16); }
+  .grad-2 { background: linear-gradient(135deg, #1a2a3a, #0d1620); }
+  .grad-3 { background: linear-gradient(135deg, #2a1a3a, #160d20); }
+  .grad-4 { background: linear-gradient(135deg, #3a2a1a, #201608); }
+  .grad-5 { background: linear-gradient(135deg, #1a3a3a, #0d2020); }
+  .grad-6 { background: linear-gradient(135deg, #3a1a1a, #200d0d); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="mainNav">
+  <div class="nav-logo" onclick="showPage('home')">PLLS</div>
+  <div class="nav-links">
+    <a class="nav-link" onclick="scrollToSection('today-playlists')">오늘의 플레이리스트</a>
+    <a class="nav-link" onclick="scrollToSection('today-uploaders')">오늘의 업로더</a>
+    <a class="nav-link" onclick="scrollToSection('celeb-plls')">Celeb's Plls</a>
+  </div>
+  <div class="nav-right" id="navRight">
+    <button class="btn-login" onclick="showPage('login')">로그인</button>
+  </div>
+</nav>
+
+<!-- ========== HOME PAGE ========== -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-noise"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">share what you feel</div>
+      <div class="hero-title">PLL<span>S</span></div>
+
+      <div class="hero-cta">
+        <button class="btn-green" onclick="showPage('login')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          Spotify로 시작하기
+        </button>
+        <button class="btn-outline" onclick="scrollToSection('today-playlists')">둘러보기</button>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      scroll
+    </div>
+  </section>
+
+  <!-- TODAY'S PLAYLISTS -->
+  <section class="section" id="today-playlists">
+    <div class="section-header">
+      <div class="section-title">
+        오늘의 플레이리스트
+      </div>
+      <a class="see-all" onclick="showToast('더 많은 플레이리스트를 보려면 로그인하세요')">전체보기</a>
+    </div>
+    <div class="playlists-grid" id="playlistsGrid">
+      <!-- JS로 생성 -->
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- TODAY'S UPLOADERS -->
+  <section class="section" id="today-uploaders">
+    <div class="section-header">
+      <div class="section-title">
+        오늘의 업로더
+      </div>
+      <a class="see-all" onclick="showToast('더 많은 업로더를 탐색하려면 로그인하세요')">전체보기</a>
+    </div>
+    <div class="uploaders-row" id="uploadersRow">
+      <!-- JS로 생성 -->
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CELEB'S PLLS -->
+  <section class="section" id="celeb-plls">
+    <div class="section-header">
+      <div class="section-title">
+        Celeb's Plls
+      </div>
+      <a class="see-all" onclick="showToast('셀럽 전체 목록 보기')">전체보기</a>
+    </div>
+    <div class="celeb-grid" id="celebGrid">
+      <!-- JS로 생성 -->
+    </div>
+  </section>
+
+  <footer style="text-align:center; padding: 48px; border-top: 1px solid var(--border); color: var(--gray-dim); font-size: 12px; letter-spacing: 1px;">
+    <div style="font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:4px; color:var(--green); margin-bottom:12px;">PLLS</div>
+    <div>© 2025 plls. share what you feel.</div>
+    <div style="margin-top:8px; display:flex; gap:20px; justify-content:center;">
+      <span style="cursor:pointer; hover:color:white">이용약관</span>
+      <span style="cursor:pointer">개인정보처리방침</span>
+      <span style="cursor:pointer">문의하기</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ========== LOGIN PAGE ========== -->
+<div id="page-login" class="page">
+  <div class="login-page">
+    <div class="login-bg"></div>
+    <div class="login-box fade-in">
+      <div class="login-logo">PLLS</div>
+      <div class="login-tagline">share what you feel</div>
+
+      <div class="login-title">Spotify로 로그인</div>
+      <div class="login-desc">
+        Spotify 계정을 연동해 플레이리스트를 가져오고,<br>
+        나만의 감성을 공유해보세요.
+      </div>
+
+      <button class="spotify-login-btn" onclick="handleSpotifyLogin()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        Spotify 계정으로 계속하기
+      </button>
+
+      <div class="login-divider">또는</div>
+
+      <div style="background: var(--dark3); border-radius: 8px; padding: 16px; text-align:left; margin-bottom: 4px;">
+        <div style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); margin-bottom:12px;">데모 체험하기</div>
+        <button class="btn-green" style="width:100%; padding:12px; border-radius:8px; font-size:14px;" onclick="handleDemoLogin()">
+          👀 로그인 없이 둘러보기
+        </button>
+      </div>
+
+      <div class="login-terms">
+        로그인하면 plls의 <span>이용약관</span> 및 <span>개인정보처리방침</span>에 동의한 것으로 간주됩니다.
+      </div>
+
+      <button class="back-btn" onclick="showPage('home')">
+        ← 홈으로 돌아가기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PROFILE PAGE ========== -->
+<div id="page-profile" class="page">
+  <div id="profileContent"></div>
+</div>
+
+<!-- ========== COMMENT MODAL ========== -->
+<div class="modal-overlay" id="commentModal">
+  <div class="modal">
+    <div class="modal-title">💬 댓글</div>
+    <button class="modal-close" onclick="closeModal('commentModal')">×</button>
+    <div class="comment-list" id="commentList"></div>
+    <div class="comment-input-row">
+      <input class="form-input" id="commentInput" placeholder="댓글을 입력하세요..." onkeydown="if(event.key==='Enter') submitComment()">
+      <button class="btn-green" style="padding:12px 20px; border-radius:8px; white-space:nowrap;" onclick="submitComment()">게시</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== UPLOAD MODAL ========== -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-title">🎵 플레이리스트 공유</div>
+    <button class="modal-close" onclick="closeModal('uploadModal')">×</button>
+
+    <div class="form-group">
+      <label class="form-label">Spotify 플레이리스트 URL</label>
+      <input class="form-input" id="spotifyUrl" placeholder="https://open.spotify.com/playlist/...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">플레이리스트 이름</label>
+      <input class="form-input" id="uploadName" placeholder="ex. 비 오는 날 듣고 싶은 노래들">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">커버 이미지 (선택 — 미선택 시 첫 곡 이미지 사용)</label>
+      <div class="photo-upload-area" onclick="showToast('이미지 업로드 (데모 버전)')">
+        <div class="photo-upload-icon">📸</div>
+        <div class="photo-upload-text">클릭해서 이미지 선택<br><small style="color:var(--gray-dim)">미선택 시 플레이리스트 첫 곡 커버 자동 적용</small></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">한마디 (선택)</label>
+      <input class="form-input" id="uploadDesc" placeholder="이 플레이리스트의 분위기는...">
+    </div>
+
+    <button class="btn-green" style="width:100%; padding:14px; border-radius:30px; font-size:15px; margin-top:8px;" onclick="submitUpload()">
+      공유하기 →
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const playlists = [
+  { id:1, name:"새벽 감성 모음", uploader:"@nightvibes", uid:1, emoji:"🌙", grad:"grad-1", likes:284, comments:32, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO" },
+  { id:2, name:"드라이브 갈 때", uploader:"@roadtrip_k", uid:2, emoji:"🚗", grad:"grad-2", likes:197, comments:21, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DXaXB8fQg7Xqb" },
+  { id:3, name:"공부할 때 집중", uploader:"@studymode", uid:3, emoji:"📚", grad:"grad-5", likes:421, comments:56, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DX8NTLI2TtZa6" },
+  { id:4, name:"봄날 산책길", uploader:"@springwalk", uid:4, emoji:"🌸", grad:"grad-3", likes:156, comments:14, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DWXe9gFZP0gtP" },
+  { id:5, name:"비 오는 날", uploader:"@rainyseoul", uid:5, emoji:"🌧️", grad:"grad-1", likes:338, comments:42, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DXbvABJXBIyiY" },
+  { id:6, name:"헬스장 파워업", uploader:"@gymrat_j", uid:6, emoji:"💪", grad:"grad-6", likes:223, comments:18, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DWZq91oLsHZvy" },
+  { id:7, name:"자기 전 잔잔하게", uploader:"@sleepytime", uid:7, emoji:"💤", grad:"grad-2", likes:512, comments:67, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DWZd79rJ6a7lp" },
+  { id:8, name:"주말 브런치", uploader:"@brunchclub", uid:8, emoji:"☕", grad:"grad-4", likes:178, comments:22, spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DXaXB8fQg7Xqb" },
+];
+
+const uploaders = [
+  { uid:7, name:"sleepytime", handle:"@sleepytime", emoji:"💤", bg:"grad-2", stat:"+247 좋아요", followers:"1.2k", isHot:true },
+  { uid:3, name:"studymode", handle:"@studymode", emoji:"📚", bg:"grad-5", stat:"+189 팔로워", followers:"3.4k", isHot:true },
+  { uid:1, name:"nightvibes", handle:"@nightvibes", emoji:"🌙", bg:"grad-1", stat:"+284 좋아요", followers:"2.1k", isHot:false },
+  { uid:5, name:"rainyseoul", handle:"@rainyseoul", emoji:"🌧️", bg:"grad-1", stat:"+120 팔로워", followers:"892", isHot:false },
+  { uid:4, name:"springwalk", handle:"@springwalk", emoji:"🌸", bg:"grad-3", stat:"+95 좋아요", followers:"654", isHot:false },
+  { uid:6, name:"gymrat_j", handle:"@gymrat_j", emoji:"💪", bg:"grad-6", stat:"+78 팔로워", followers:"1.7k", isHot:false },
+];
+
+const celebs = [
+  { name:"아이유 (IU)", handle:"@iu_official", emoji:"🌷", bg:"#1a2535", playlist:"봄 안에서 - IU's Spring Mood", likes:24893, spotifyUrl:"https://open.spotify.com/artist/3HqSLMAZ3g3d5poNaI7GOU" },
+  { name:"방탄소년단 RM", handle:"@rkive", emoji:"📖", bg:"#1a1a2a", playlist:"RM's Late Night Reading", likes:67234, spotifyUrl:"https://open.spotify.com/artist/7Bah9quKqFcCTBP4bLQaHB" },
+  { name:"뉴진스 (NewJeans)", handle:"@newjeans_official", emoji:"🐰", bg:"#2a1a2a", playlist:"NewJeans' Y2K Vibes", likes:45127, spotifyUrl:"https://open.spotify.com/artist/1l4AoToC4vJqjp6pFdU9wG" },
+  { name:"에스파 (aespa)", handle:"@aespa_official", emoji:"🤖", bg:"#1a2020", playlist:"Into the metaverse 🖤", likes:38921, spotifyUrl:"https://open.spotify.com/artist/5Z9KJZvQzOsdase5bO9pFe" },
+  { name:"임영웅", handle:"@youngwoong_lim", emoji:"🎤", bg:"#251a1a", playlist:"영웅이의 감성 트로트", likes:29487, spotifyUrl:"https://open.spotify.com/artist/6A4W0hgTiLOz2Rz6rBqWmf" },
+  { name:"태연 (TAEYEON)", handle:"@taeyeon_ss", emoji:"❄️", bg:"#1a2535", playlist:"TAEYEON — 밤을 걷다", likes:52301, spotifyUrl:"https://open.spotify.com/artist/1jdECfXNg4Ib4Y6LaIGxLe" },
+];
+
+const sampleComments = {
+  1: [
+    { user:"@moonchild", emoji:"🌙", text:"진짜 새벽에 딱이에요... 너무 좋다", time:"2시간 전" },
+    { user:"@quiethours", emoji:"🌊", text:"이 플리 때문에 잠 못 자고 있어요ㅋㅋ", time:"1시간 전" },
+  ],
+  2: [
+    { user:"@drivingme", emoji:"🚙", text:"드라이브 갔다가 목적지 지나칠 뻔 했어요", time:"3시간 전" },
+  ],
+  3: [
+    { user:"@cramming", emoji:"✏️", text:"시험 기간 내내 틀어놓을게요 감사합니다", time:"5시간 전" },
+    { user:"@focuspls", emoji:"🧠", text:"진짜 집중 잘 돼요!!!", time:"4시간 전" },
+    { user:"@librarymode", emoji:"📖", text:"카페에서 들으니까 더 좋네요", time:"2시간 전" },
+  ],
+};
+
+const profileData = {
+  1: { name:"nightvibes", bio:"새벽 감성을 수집합니다 🌙", emoji:"🌙", grad:"grad-1", followers:2100, following:389, playlists:12 },
+  2: { name:"roadtrip_k", bio:"어디든 떠나고 싶은 사람", emoji:"🚗", grad:"grad-2", followers:1432, following:210, playlists:8 },
+  3: { name:"studymode", bio:"공부할 때 음악이 없으면 못 살아요 📚", emoji:"📚", grad:"grad-5", followers:3400, following:501, playlists:21 },
+  4: { name:"springwalk", bio:"봄을 기다리는 사람 🌸", emoji:"🌸", grad:"grad-3", followers:654, following:178, playlists:5 },
+  5: { name:"rainyseoul", bio:"비 오는 서울이 제일 좋아요", emoji:"🌧️", grad:"grad-1", followers:892, following:234, playlists:9 },
+  6: { name:"gymrat_j", bio:"운동이 인생 💪 음악이 연료", emoji:"💪", grad:"grad-6", followers:1700, following:290, playlists:7 },
+  7: { name:"sleepytime", bio:"잠들기 전 30분이 소중해요 💤", emoji:"💤", grad:"grad-2", followers:1200, following:145, playlists:15 },
+  8: { name:"brunchclub", bio:"브런치 없는 주말은 없다 ☕", emoji:"☕", grad:"grad-4", followers:987, following:302, playlists:6 },
+};
+
+// ===== STATE =====
+let likedPlaylists = new Set();
+let followedUsers = new Set();
+let isLoggedIn = false;
+let currentUser = null;
+let currentCommentPlaylistId = null;
+let extraComments = {};
+
+// ===== RENDER =====
+function renderPlaylists() {
+  const grid = document.getElementById('playlistsGrid');
+  grid.innerHTML = playlists.map(p => `
+    <div class="playlist-card fade-in" style="animation-delay:${playlists.indexOf(p)*0.05}s">
+      <div class="playlist-cover-img ${p.grad}" style="position:relative;">
+        <span style="font-size:52px; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5))">${p.emoji}</span>
+        <div class="play-overlay" onclick="openSpotify('${p.spotifyUrl}')">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+      <div class="playlist-info">
+        <div class="playlist-name">${p.name}</div>
+        <div class="playlist-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
+        <div class="playlist-meta">
+          <button class="meta-btn ${likedPlaylists.has(p.id) ? 'liked' : ''}" onclick="toggleLike(${p.id})">
+            <svg viewBox="0 0 24 24" fill="${likedPlaylists.has(p.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            ${(p.likes + (likedPlaylists.has(p.id) ? 1 : 0))}
+          </button>
+          <button class="meta-btn" onclick="openComments(${p.id})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            ${(sampleComments[p.id]?.length || 0) + (extraComments[p.id]?.length || 0)}
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderUploaders() {
+  const row = document.getElementById('uploadersRow');
+  row.innerHTML = uploaders.map(u => `
+    <div class="uploader-card">
+      <div class="uploader-avatar ${u.isHot ? 'hot' : ''} ${u.bg}" onclick="showProfile(${u.uid})" style="background:inherit;">
+        <span>${u.emoji}</span>
+      </div>
+      <div class="uploader-name">${u.name}</div>
+      <div class="uploader-stat">🔥 ${u.stat}</div>
+      <div class="uploader-followers">팔로워 ${u.followers}</div>
+      <button class="follow-btn ${followedUsers.has(u.uid) ? 'following' : ''}" onclick="toggleFollow(${u.uid}, this)">
+        ${followedUsers.has(u.uid) ? '✓ 팔로잉' : '팔로우'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function renderCelebs() {
+  const grid = document.getElementById('celebGrid');
+  grid.innerHTML = celebs.map(c => `
+    <div class="celeb-card" onclick="openSpotify('${c.spotifyUrl}')">
+      <div class="celeb-cover" style="background:${c.bg};">
+        <span>${c.emoji}</span>
+      </div>
+      <div class="celeb-info">
+        <div class="celeb-badge">✦ CELEB</div>
+        <div class="celeb-name">${c.name}</div>
+        <div class="celeb-playlist-name">🎵 ${c.playlist}</div>
+        <div class="celeb-likes">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--green)" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          ${c.likes.toLocaleString()}
+        </div>
+      </div>
+      <div style="position:absolute; right:16px; bottom:16px; opacity:0.5; font-size:12px; color:var(--green)">▶ Spotify</div>
+    </div>
+  `).join('');
+}
+
+// ===== INTERACTIONS =====
+function toggleLike(id) {
+  if (!isLoggedIn) { showToast('❤️ 좋아요는 로그인 후 가능해요'); return; }
+  if (likedPlaylists.has(id)) { likedPlaylists.delete(id); } else { likedPlaylists.add(id); }
+  renderPlaylists();
+}
+
+function toggleFollow(uid, btn) {
+  if (!isLoggedIn) { showToast('팔로우는 로그인 후 가능해요'); return; }
+  if (followedUsers.has(uid)) {
+    followedUsers.delete(uid);
+    btn.textContent = '팔로우';
+    btn.classList.remove('following');
+    showToast('팔로우를 취소했어요');
+  } else {
+    followedUsers.add(uid);
+    btn.textContent = '✓ 팔로잉';
+    btn.classList.add('following');
+    showToast('✓ 팔로우했어요!');
+  }
+}
+
+function openComments(id) {
+  currentCommentPlaylistId = id;
+  const list = document.getElementById('commentList');
+  const all = [...(sampleComments[id] || []), ...(extraComments[id] || [])];
+  list.innerHTML = all.length ? all.map(c => `
+    <div class="comment-item">
+      <div class="comment-avatar" style="background:var(--dark3); font-size:18px;">${c.emoji}</div>
+      <div class="comment-body">
+        <div class="comment-user">${c.user}</div>
+        <div class="comment-text">${c.text}</div>
+        <div class="comment-time">${c.time}</div>
+      </div>
+    </div>
+  `).join('') : `<div style="text-align:center; padding:32px; color:var(--gray-dim)">첫 댓글을 남겨보세요 💬</div>`;
+  document.getElementById('commentModal').classList.add('active');
+}
+
+function submitComment() {
+  if (!isLoggedIn) { showToast('댓글은 로그인 후 작성할 수 있어요'); return; }
+  const input = document.getElementById('commentInput');
+  if (!input.value.trim()) return;
+  if (!extraComments[currentCommentPlaylistId]) extraComments[currentCommentPlaylistId] = [];
+  extraComments[currentCommentPlaylistId].push({
+    user: currentUser?.handle || '@me',
+    emoji: currentUser?.emoji || '🎵',
+    text: input.value.trim(),
+    time: '방금'
+  });
+  input.value = '';
+  openComments(currentCommentPlaylistId);
+  renderPlaylists();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function openSpotify(url) {
+  showToast('🎵 Spotify로 이동합니다...');
+  setTimeout(() => window.open(url, '_blank'), 500);
+}
+
+// ===== PROFILE =====
+function showProfile(uid) {
+  const p = profileData[uid];
+  if (!p) return;
+  const myPlls = playlists.filter(pl => pl.uid === uid);
+  const content = document.getElementById('profileContent');
+  content.innerHTML = `
+    <div class="profile-header">
+      <button onclick="showPage('home')" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:6px;margin-bottom:20px;transition:color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 홈으로</button>
+      <div class="profile-top">
+        <div class="profile-avatar-lg ${p.grad}">
+          <span>${p.emoji}</span>
+        </div>
+        <div class="profile-meta">
+          <div class="profile-type">플레이리스트 큐레이터</div>
+          <div class="profile-username">@${p.name}</div>
+          <div class="profile-bio">"${p.bio}"</div>
+          <div class="profile-stats">
+            <div class="profile-stat"><strong>${p.followers.toLocaleString()}</strong>팔로워</div>
+            <div class="profile-stat"><strong>${p.following.toLocaleString()}</strong>팔로잉</div>
+            <div class="profile-stat"><strong>${p.playlists}</strong>플리</div>
+          </div>
+          <div class="profile-actions">
+            <button class="btn-green" style="padding:10px 28px;" onclick="toggleFollowProfile(${uid}, this)">
+              ${followedUsers.has(uid) ? '✓ 팔로잉' : '+ 팔로우'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">플레이리스트</div>
+      <div class="playlists-grid" style="margin-top:24px;">
+        ${myPlls.map(pl => `
+          <div class="playlist-card">
+            <div class="playlist-cover-img ${pl.grad}" style="position:relative;">
+              <span style="font-size:52px">${pl.emoji}</span>
+              <div class="play-overlay" onclick="openSpotify('${pl.spotifyUrl}')">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+            </div>
+            <div class="playlist-info">
+              <div class="playlist-name">${pl.name}</div>
+              <div class="playlist-meta">
+                <span class="meta-btn">❤️ ${pl.likes}</span>
+                <span class="meta-btn">💬 ${sampleComments[pl.id]?.length || 0}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+        ${myPlls.length === 0 ? '<div style="color:var(--gray-dim); padding:20px; grid-column:1/-1">아직 공유한 플레이리스트가 없어요</div>' : ''}
+      </div>
+    </div>
+  `;
+  showPage('profile');
+}
+
+function toggleFollowProfile(uid, btn) {
+  if (!isLoggedIn) { showToast('팔로우는 로그인 후 가능해요'); return; }
+  if (followedUsers.has(uid)) {
+    followedUsers.delete(uid);
+    btn.textContent = '+ 팔로우';
+    btn.style.background = 'var(--green)';
+    showToast('팔로우를 취소했어요');
+  } else {
+    followedUsers.add(uid);
+    btn.textContent = '✓ 팔로잉';
+    showToast('✓ 팔로우했어요!');
+  }
+  renderUploaders();
+}
+
+// ===== LOGIN =====
+function handleSpotifyLogin() {
+  showToast('⚡ Spotify 연동 중... (데모 버전)');
+  setTimeout(() => {
+    isLoggedIn = true;
+    currentUser = { handle: '@you', emoji: '🎵' };
+    updateNavForLogin();
+    showPage('home');
+    showToast('🎉 환영해요! Spotify가 연동되었어요');
+  }, 1500);
+}
+
+function handleDemoLogin() {
+  isLoggedIn = true;
+  currentUser = { handle: '@guest', emoji: '👤' };
+  updateNavForLogin();
+  showPage('home');
+  showToast('👀 게스트로 둘러보는 중');
+}
+
+function updateNavForLogin() {
+  const navRight = document.getElementById('navRight');
+  navRight.innerHTML = `
+    <button class="btn-green" onclick="document.getElementById('uploadModal').classList.add('active')">+ 공유하기</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;" onclick="showToast('내 프로필')">🎵</div>
+  `;
+}
+
+function submitUpload() {
+  const name = document.getElementById('uploadName').value;
+  const url = document.getElementById('spotifyUrl').value;
+  if (!name || !url) { showToast('플레이리스트 이름과 URL을 입력해주세요'); return; }
+  closeModal('uploadModal');
+  showToast('🎵 플레이리스트가 공유되었어요!');
+  document.getElementById('uploadName').value = '';
+  document.getElementById('spotifyUrl').value = '';
+  document.getElementById('uploadDesc').value = '';
+}
+
+// ===== PAGES =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+
+// ===== INIT =====
+renderPlaylists();
+renderUploaders();
+renderCelebs();
+</script>
+</body>
+</html>
