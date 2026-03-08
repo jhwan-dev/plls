@@ -523,8 +523,24 @@
     background: var(--white);
     color: var(--black);
     border-radius: 50%;
+    transition: background 0.25s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
   }
-  .mp-btn.play-pause:hover { transform: scale(1.05); background: #e0e0e0; }
+  .mp-btn.play-pause:hover {
+    background: var(--green);
+    color: var(--black);
+    transform: scale(1.06);
+    box-shadow: 0 0 14px rgba(29,185,84,0.4);
+  }
+  .mp-btn.play-pause.playing {
+    background: var(--green);
+    color: var(--black);
+    box-shadow: 0 0 10px rgba(29,185,84,0.3);
+  }
+  .mp-btn.play-pause.playing:hover {
+    background: var(--green);
+    transform: scale(1.06);
+    box-shadow: 0 0 18px rgba(29,185,84,0.5);
+  }
 
   .mp-progress {
     width: 100%;
@@ -1238,11 +1254,13 @@ function updatePlayerUI(state) {
   document.getElementById('mpCover').src = track.album.images[0]?.url || '';
   document.getElementById('mpDuration').textContent = formatTime(state.duration);
 
-  // 재생/정지 아이콘 전환
+  // 재생/정지 아이콘 + 버튼 색상 전환
   const icon = document.getElementById('mpPlayIcon');
+  const playBtn = document.getElementById('mpPlayBtn');
   icon.innerHTML = state.paused
     ? '<path d="M8 5v14l11-7z"/>'
     : '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+  playBtn.classList.toggle('playing', !state.paused);
 
   // 미니플레이어 표시
   const player = document.getElementById('miniPlayer');
