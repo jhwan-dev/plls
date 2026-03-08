@@ -902,7 +902,20 @@ function handleLogout(){
   showPage('home');showToast('로그아웃됐어요');
 }
 
-function openUploadModal(){renderPlaylistDropdown();document.getElementById('uploadModal').classList.add('active');}
+function openUploadModal(){
+  if(!isLoggedIn){showPage('login');return;}
+  document.getElementById('uploadModal').classList.add('active');
+  // 모달 열 때마다 최신 플레이리스트 자동 동기화
+  if(currentUser?.token){
+    const sel=document.getElementById('spotifyPlaylistSelect');
+    sel.innerHTML='<option value="">⏳ 플레이리스트 불러오는 중...</option>';
+    loadUserPlaylists(currentUser.token).then(()=>{
+      showToast('✓ 플레이리스트 동기화 완료');
+    }).catch(()=>{
+      sel.innerHTML='<option value="">⚠️ 불러오기 실패 — 다시 시도해주세요</option>';
+    });
+  }
+}
 
 function handleDemoLogin(){
   isLoggedIn=true;currentUser={handle:'@guest',name:'게스트'};
