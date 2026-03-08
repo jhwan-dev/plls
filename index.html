@@ -440,8 +440,144 @@
   .comment-input-row { display:flex; gap:10px; }
   .comment-input-row .form-input { flex:1; }
 
-  .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--dark3); border:1px solid var(--green); border-radius:24px; padding:12px 24px; font-size:13px; font-weight:600; color:var(--white); z-index:300; transition:transform 0.3s ease; white-space:nowrap; }
+  .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--dark3); border:1px solid var(--green); border-radius:24px; padding:12px 24px; font-size:13px; font-weight:600; color:var(--white); z-index:300; transition:transform 0.3s ease, bottom 0.4s cubic-bezier(0.16,1,0.3,1); white-space:nowrap; }
   .toast.show { transform:translateX(-50%) translateY(0); }
+  .player-open .toast { bottom: 84px; }
+
+  /* ===== MINI PLAYER ===== */
+  #miniPlayer {
+    position: fixed;
+    bottom: -100px;
+    left: 0; right: 0;
+    z-index: 200;
+    height: 72px;
+    background: rgba(18,18,18,0.97);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    transition: bottom 0.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  #miniPlayer.visible { bottom: 0; }
+
+  .mp-cover {
+    width: 48px; height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--dark3);
+  }
+
+  .mp-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .mp-track {
+    font-size: 13px; font-weight: 600;
+    color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mp-artist {
+    font-size: 11px; color: var(--gray);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .mp-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .mp-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .mp-btn:hover { color: var(--white); transform: scale(1.1); }
+  .mp-btn.play-pause {
+    width: 40px; height: 40px;
+    background: var(--white);
+    color: var(--black);
+  }
+  .mp-btn.play-pause:hover { background: var(--green); color: var(--black); transform: scale(1.05); }
+
+  .mp-progress {
+    flex: 2;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mp-bar-wrap {
+    width: 100%;
+    height: 3px;
+    background: var(--gray-dim);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+  }
+  .mp-bar-wrap:hover { height: 5px; }
+  .mp-bar-fill {
+    height: 100%;
+    background: var(--white);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.5s linear;
+    pointer-events: none;
+  }
+  .mp-bar-wrap:hover .mp-bar-fill { background: var(--green); }
+  .mp-times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--gray-dim);
+  }
+
+  .mp-vol {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mp-vol-slider {
+    -webkit-appearance: none;
+    width: 70px; height: 3px;
+    background: var(--gray-dim);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  .mp-vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--white);
+    cursor: pointer;
+  }
+  .mp-vol-slider:hover { background: var(--green); }
+
+  .mp-close {
+    background: none; border: none;
+    color: var(--gray-dim); font-size: 18px;
+    cursor: pointer; transition: color 0.15s;
+    flex-shrink: 0; padding: 4px;
+  }
+  .mp-close:hover { color: var(--white); }
+
+  @media(max-width:768px){
+    #miniPlayer { padding: 0 14px; gap: 10px; }
+    .mp-progress { display: none; }
+    .mp-vol { display: none; }
+  }
 
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
   .fade-in { animation:fadeUp 0.5s ease both; }
@@ -609,6 +745,40 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MINI PLAYER -->
+<div id="miniPlayer">
+  <img class="mp-cover" id="mpCover" src="" alt="">
+  <div class="mp-info">
+    <div class="mp-track" id="mpTrack">—</div>
+    <div class="mp-artist" id="mpArtist">—</div>
+  </div>
+  <div class="mp-controls">
+    <button class="mp-btn" onclick="playerPrev()" title="이전">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="mp-btn play-pause" id="mpPlayBtn" onclick="playerToggle()">
+      <svg id="mpPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button class="mp-btn" onclick="playerNext()" title="다음">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zm7-3.86h2v12h-2z"/></svg>
+    </button>
+  </div>
+  <div class="mp-progress">
+    <div class="mp-bar-wrap" id="mpBarWrap" onclick="playerSeek(event)">
+      <div class="mp-bar-fill" id="mpBarFill"></div>
+    </div>
+    <div class="mp-times">
+      <span id="mpCurrent">0:00</span>
+      <span id="mpDuration">0:00</span>
+    </div>
+  </div>
+  <div class="mp-vol">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gray)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+    <input type="range" class="mp-vol-slider" id="mpVolSlider" min="0" max="100" value="80" oninput="playerVolume(this.value)">
+  </div>
+  <button class="mp-close" onclick="playerClose()" title="닫기">×</button>
+</div>
 
 <script>
 const playlists = [
@@ -835,7 +1005,7 @@ function toggleFollowProfile(uid,btn) {
 // SPOTIFY OAUTH (PKCE)
 const SPOTIFY_CLIENT_ID='ac9b7020d5054bd288c0037fe8209120';
 const SPOTIFY_REDIRECT_URI='https://jhwan-dev.github.io/plls/';
-const SPOTIFY_SCOPES='user-read-private user-read-email playlist-read-private playlist-read-collaborative';
+const SPOTIFY_SCOPES='user-read-private user-read-email playlist-read-private playlist-read-collaborative streaming user-read-playback-state user-modify-playback-state';
 
 function generateRandomString(n){const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a,x=>c[x%c.length]).join('');}
 async function generateCodeChallenge(v){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
@@ -867,6 +1037,9 @@ async function initLoggedInUser(token){
     currentUser={handle:'@'+(p.display_name||p.id).replace(/\s/g,'_').toLowerCase(),name:p.display_name||p.id,image:p.images?.[0]?.url||null,id:p.id,token};
     updateNavForLogin();showPage('home');showToast(`🎉 환영해요, ${currentUser.name}님!`);
     await loadUserPlaylists(token);
+    // Web Playback SDK 초기화
+    if(window.Spotify) initPlayer(token);
+    else window._pendingPlayerToken = token;
   }catch(e){showToast('프로필을 불러오지 못했어요.');console.error(e);}
 }
 
@@ -978,6 +1151,148 @@ async function init(){
   renderPlaylists();renderUploaders();renderCelebs();
 }
 init();
+</script>
+
+<!-- Spotify Web Playback SDK -->
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
+<script>
+// ===== WEB PLAYBACK SDK =====
+let spotifyPlayer = null;
+let playerDeviceId = null;
+let playerState = null;
+let progressInterval = null;
+
+window.onSpotifyWebPlaybackSDKReady = () => {
+  const token = window._pendingPlayerToken || localStorage.getItem('spotify_access_token');
+  if(token) initPlayer(token);
+};
+
+function initPlayer(token) {
+  if(spotifyPlayer) return;
+
+  spotifyPlayer = new Spotify.Player({
+    name: 'plls player',
+    getOAuthToken: cb => cb(token),
+    volume: 0.8,
+  });
+
+  spotifyPlayer.addListener('ready', ({device_id}) => {
+    playerDeviceId = device_id;
+    console.log('plls player ready:', device_id);
+  });
+
+  spotifyPlayer.addListener('not_ready', ({device_id}) => {
+    console.log('Player offline:', device_id);
+  });
+
+  spotifyPlayer.addListener('player_state_changed', state => {
+    if(!state) return;
+    playerState = state;
+    updatePlayerUI(state);
+  });
+
+  spotifyPlayer.addListener('initialization_error', ({message}) => console.error(message));
+  spotifyPlayer.addListener('authentication_error', ({message}) => console.error(message));
+  spotifyPlayer.addListener('account_error', () => {
+    showToast('Spotify Premium이 필요해요');
+  });
+
+  spotifyPlayer.connect();
+}
+
+function updatePlayerUI(state) {
+  if(!state) return;
+  const track = state.track_window.current_track;
+  if(!track) return;
+
+  document.getElementById('mpTrack').textContent = track.name;
+  document.getElementById('mpArtist').textContent = track.artists.map(a=>a.name).join(', ');
+  document.getElementById('mpCover').src = track.album.images[0]?.url || '';
+  document.getElementById('mpDuration').textContent = formatTime(state.duration);
+
+  // 재생/정지 아이콘 전환
+  const icon = document.getElementById('mpPlayIcon');
+  icon.innerHTML = state.paused
+    ? '<path d="M8 5v14l11-7z"/>'
+    : '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+
+  // 미니플레이어 표시
+  const player = document.getElementById('miniPlayer');
+  player.classList.add('visible');
+  document.body.classList.add('player-open');
+
+  // 진행바 업데이트
+  clearInterval(progressInterval);
+  if(!state.paused) {
+    let pos = state.position;
+    const dur = state.duration;
+    progressInterval = setInterval(()=>{
+      pos += 500;
+      if(pos > dur) { clearInterval(progressInterval); return; }
+      document.getElementById('mpBarFill').style.width = (pos/dur*100)+'%';
+      document.getElementById('mpCurrent').textContent = formatTime(pos);
+    }, 500);
+  }
+  document.getElementById('mpBarFill').style.width = (state.position/state.duration*100)+'%';
+  document.getElementById('mpCurrent').textContent = formatTime(state.position);
+}
+
+function formatTime(ms) {
+  const s = Math.floor(ms/1000);
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+async function playPlaylist(spotifyUri, token) {
+  if(!playerDeviceId) {
+    showToast('플레이어 준비 중이에요. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  try {
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${playerDeviceId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context_uri: spotifyUri }),
+    });
+  } catch(e) {
+    showToast('재생 중 오류가 발생했어요.');
+    console.error(e);
+  }
+}
+
+function playerToggle() { spotifyPlayer?.togglePlay(); }
+function playerNext() { spotifyPlayer?.nextTrack(); }
+function playerPrev() { spotifyPlayer?.previousTrack(); }
+function playerVolume(v) { spotifyPlayer?.setVolume(v/100); }
+
+function playerSeek(e) {
+  if(!playerState) return;
+  const rect = document.getElementById('mpBarWrap').getBoundingClientRect();
+  const ratio = (e.clientX - rect.left) / rect.width;
+  spotifyPlayer?.seek(Math.floor(ratio * playerState.duration));
+}
+
+function playerClose() {
+  spotifyPlayer?.pause();
+  clearInterval(progressInterval);
+  document.getElementById('miniPlayer').classList.remove('visible');
+  document.body.classList.remove('player-open');
+}
+
+// openSpotify 오버라이드 — 로그인+프리미엄이면 인앱 재생, 아니면 Spotify로 이동
+function openSpotify(url) {
+  if(isLoggedIn && spotifyPlayer && playerDeviceId) {
+    // open.spotify.com/playlist/ID → spotify:playlist:ID
+    const match = url.match(/spotify\.com\/(playlist|album|artist)\/([a-zA-Z0-9]+)/);
+    if(match) {
+      const uri = `spotify:${match[1]}:${match[2]}`;
+      playPlaylist(uri, currentUser.token);
+      return;
+    }
+  }
+  // 폴백: 외부 Spotify로 이동
+  showToast('Spotify로 이동합니다...');
+  setTimeout(()=>window.open(url,'_blank'), 500);
+}
 </script>
 </body>
 </html>
