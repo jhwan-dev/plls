@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>plls</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --black: #0a0a0a;
@@ -825,7 +826,12 @@
 </div>
 
 <script>
-const playlists = [
+// ===== SUPABASE =====
+const SUPABASE_URL = 'https://crcuzdidfjejjerqghcq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_jfT4fJCtH_j9JLBO68K5Iw_-kjSq3No';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const samplePlaylists = [
   {id:1,name:"새벽 감성 모음",uploader:"@nightvibes",uid:1,emoji:"🌙",grad:"grad-1",likes:284,comments:32,spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO"},
   {id:2,name:"드라이브 갈 때",uploader:"@roadtrip_k",uid:2,emoji:"🚗",grad:"grad-2",likes:197,comments:21,spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DXaXB8fQg7Xqb"},
   {id:3,name:"공부할 때 집중",uploader:"@studymode",uid:3,emoji:"📚",grad:"grad-5",likes:421,comments:56,spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DX8NTLI2TtZa6"},
@@ -835,6 +841,9 @@ const playlists = [
   {id:7,name:"자기 전 잔잔하게",uploader:"@sleepytime",uid:7,emoji:"💤",grad:"grad-2",likes:512,comments:67,spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DWZd79rJ6a7lp"},
   {id:8,name:"주말 브런치",uploader:"@brunchclub",uid:8,emoji:"☕",grad:"grad-4",likes:178,comments:22,spotifyUrl:"https://open.spotify.com/playlist/37i9dQZF1DXaXB8fQg7Xqb"},
 ];
+
+// 실시간 피드 (DB + 샘플 합본)
+let playlists = [...samplePlaylists];
 
 const uploaders = [
   {uid:7,name:"sleepytime",emoji:"💤",bg:"grad-2",stat:"+247 좋아요",followers:"1.2k",isHot:true},
@@ -938,7 +947,7 @@ function renderCelebs() {
     </div>`).join('');
 }
 
-function toggleLike(id, btnEl) {
+async function toggleLike(id, btnEl) {
   if(!isLoggedIn){showToast('❤️ 좋아요는 로그인 후 가능해요');return;}
   const wasLiked = likedPlaylists.has(id);
   wasLiked ? likedPlaylists.delete(id) : likedPlaylists.add(id);
@@ -949,48 +958,90 @@ function toggleLike(id, btnEl) {
   const isNowLiked = likedPlaylists.has(id);
   const count = p.likes + (isNowLiked ? 1 : 0);
 
-  // SVG fill 업데이트
   const svg = btnEl.querySelector('svg');
   svg.setAttribute('fill', isNowLiked ? 'currentColor' : 'none');
-
-  // 색상 토글
   btnEl.classList.toggle('liked', isNowLiked);
-
-  // 숫자 span만 업데이트
   const countEl = btnEl.querySelector('.like-count');
   if(countEl) countEl.textContent = count;
+  p.likes = count;
 
-  // 팝 애니메이션
   btnEl.classList.remove('like-pop');
   void btnEl.offsetWidth;
   btnEl.classList.add('like-pop');
   btnEl.addEventListener('animationend', ()=>btnEl.classList.remove('like-pop'), {once:true});
+
+  // DB 반영
+  if(p.fromDB && p.dbId){
+    if(isNowLiked){
+      await sb.from('likes').upsert({user_id:currentUser.id, playlist_id:p.dbId},{onConflict:'user_id,playlist_id'});
+    } else {
+      await sb.from('likes').delete().eq('user_id',currentUser.id).eq('playlist_id',p.dbId);
+    }
+  }
 }
 
 
 
-function toggleFollow(uid,btn) {
+async function toggleFollow(uid,btn) {
   if(!isLoggedIn){showToast('팔로우는 로그인 후 가능해요');return;}
-  if(followedUsers.has(uid)){followedUsers.delete(uid);btn.textContent='팔로우';btn.classList.remove('following');showToast('팔로우를 취소했어요');}
-  else{followedUsers.add(uid);btn.textContent='✓ 팔로잉';btn.classList.add('following');showToast('✓ 팔로우했어요!');}
+  if(followedUsers.has(uid)){
+    followedUsers.delete(uid);
+    btn.textContent='팔로우';btn.classList.remove('following');
+    showToast('팔로우를 취소했어요');
+    await sb.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',uid);
+  } else {
+    followedUsers.add(uid);
+    btn.textContent='✓ 팔로잉';btn.classList.add('following');
+    showToast('✓ 팔로우했어요!');
+    await sb.from('follows').upsert({follower_id:currentUser.id, following_id:uid},{onConflict:'follower_id,following_id'});
+  }
 }
 
-function openComments(id) {
-  currentCommentPlaylistId=id;
-  const all=[...(sampleComments[id]||[]),...(extraComments[id]||[])];
-  document.getElementById('commentList').innerHTML = all.length
-    ?all.map(c=>`<div class="comment-item"><div class="comment-avatar">${c.emoji}</div><div class="comment-body"><div class="comment-user">${c.user}</div><div class="comment-text">${c.text}</div><div class="comment-time">${c.time}</div></div></div>`).join('')
-    :`<div style="text-align:center;padding:32px;color:var(--gray-dim)">첫 댓글을 남겨보세요 💬</div>`;
+function renderCommentList(comments){
+  const list = document.getElementById('commentList');
+  list.innerHTML = comments.length
+    ? comments.map(c=>`<div class="comment-item"><div class="comment-avatar">${c.emoji||'🎵'}</div><div class="comment-body"><div class="comment-user">${c.user||c.handle}</div><div class="comment-text">${c.text}</div><div class="comment-time">${c.time||c.created_at?.slice(11,16)||'방금'}</div></div></div>`).join('')
+    : `<div style="text-align:center;padding:32px;color:var(--gray-dim)">첫 댓글을 남겨보세요 💬</div>`;
+}
+
+async function openComments(id) {
+  currentCommentPlaylistId = id;
   document.getElementById('commentModal').classList.add('active');
+  const p = playlists.find(pl=>pl.id===id);
+
+  if(p?.fromDB && p.dbId){
+    // DB에서 댓글 로드
+    const {data} = await sb.from('comments').select('*').eq('playlist_id', p.dbId).order('created_at');
+    const mapped = (data||[]).map(c=>({user:c.handle,emoji:'🎵',text:c.text,time:c.created_at?.slice(11,16)}));
+    const all = [...(sampleComments[id]||[]), ...mapped];
+    renderCommentList(all);
+  } else {
+    const all=[...(sampleComments[id]||[]),...(extraComments[id]||[])];
+    renderCommentList(all);
+  }
 }
 
-function submitComment() {
+async function submitComment() {
   if(!isLoggedIn){showToast('댓글은 로그인 후 작성할 수 있어요');return;}
   const input=document.getElementById('commentInput');
   if(!input.value.trim())return;
-  if(!extraComments[currentCommentPlaylistId])extraComments[currentCommentPlaylistId]=[];
-  extraComments[currentCommentPlaylistId].push({user:currentUser?.handle||'@me',emoji:'🎵',text:input.value.trim(),time:'방금'});
-  input.value='';openComments(currentCommentPlaylistId);renderPlaylists();
+  const text = input.value.trim();
+  const p = playlists.find(pl=>pl.id===currentCommentPlaylistId);
+
+  if(p?.fromDB && p.dbId){
+    await sb.from('comments').insert({
+      playlist_id: p.dbId,
+      user_id: currentUser.id,
+      handle: currentUser.handle,
+      text: text,
+    });
+  } else {
+    if(!extraComments[currentCommentPlaylistId])extraComments[currentCommentPlaylistId]=[];
+    extraComments[currentCommentPlaylistId].push({user:currentUser?.handle||'@me',emoji:'🎵',text,time:'방금'});
+  }
+  input.value='';
+  openComments(currentCommentPlaylistId);
+  renderPlaylists();
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('active');}
@@ -1084,7 +1135,67 @@ async function initLoggedInUser(token){
     // Web Playback SDK 초기화
     if(window.Spotify) initPlayer(token);
     else window._pendingPlayerToken = token;
+    // Supabase 유저 upsert + 내 좋아요/팔로우 로드
+    await sbUpsertUser();
+    await sbLoadMyLikes();
+    await sbLoadMyFollows();
   }catch(e){showToast('프로필을 불러오지 못했어요.');console.error(e);}
+}
+
+// ===== SUPABASE DB 함수 =====
+
+async function sbUpsertUser(){
+  if(!currentUser) return;
+  await sb.from('users').upsert({
+    id: currentUser.id,
+    handle: currentUser.handle,
+    name: currentUser.name,
+    image: currentUser.image,
+  }, {onConflict:'id'});
+}
+
+async function sbLoadFeed(){
+  const {data, error} = await sb
+    .from('playlists')
+    .select('*, likes(count), comments(count)')
+    .order('created_at', {ascending: false})
+    .limit(50);
+  if(error){console.error(error);return;}
+  if(!data||data.length===0) return;
+
+  const dbCards = data.map(p=>({
+    id: 'db_'+p.id,
+    dbId: p.id,
+    name: p.name,
+    uploader: p.handle,
+    uid: p.user_id,
+    emoji: '🎵',
+    grad: 'grad-1',
+    coverImg: p.cover_img || null,
+    likes: p.likes?.[0]?.count || 0,
+    comments: p.comments?.[0]?.count || 0,
+    spotifyUrl: p.spotify_url,
+    desc: p.description,
+    fromDB: true,
+  }));
+
+  // DB 카드를 샘플 앞에 붙이기
+  playlists = [...dbCards, ...samplePlaylists];
+  renderPlaylists();
+}
+
+async function sbLoadMyLikes(){
+  if(!currentUser) return;
+  const {data} = await sb.from('likes').select('playlist_id').eq('user_id', currentUser.id);
+  if(data) data.forEach(r => likedPlaylists.add('db_'+r.playlist_id));
+  renderPlaylists();
+}
+
+async function sbLoadMyFollows(){
+  if(!currentUser) return;
+  const {data} = await sb.from('follows').select('following_id').eq('follower_id', currentUser.id);
+  if(data) data.forEach(r => followedUsers.add(r.following_id));
+  renderUploaders();
 }
 
 async function loadUserPlaylists(token){
@@ -1110,7 +1221,7 @@ function onPlaylistSelect(sel){
   preview.style.display='flex';
 }
 
-function submitUpload(){
+async function submitUpload(){
   const sel=document.getElementById('spotifyPlaylistSelect');
   const idx=parseInt(sel?.value);
   if(isNaN(idx)||!sel?.value){showToast('플레이리스트를 선택해주세요');return;}
@@ -1119,30 +1230,33 @@ function submitUpload(){
   if(!sp){showToast('플레이리스트 정보를 찾을 수 없어요');return;}
 
   const desc=document.getElementById('uploadDesc').value;
-  const newId=Date.now();
-  const newCard={
-    id: newId,
+
+  // Supabase에 저장
+  const {data, error} = await sb.from('playlists').insert({
+    spotify_url: sp.external_urls?.spotify || '',
     name: sp.name,
-    uploader: currentUser.handle,
-    uid: 'me',
-    emoji: '🎵',
-    grad: 'grad-1',
-    coverImg: sp.images?.[0]?.url || null,
-    likes: 0,
-    comments: 0,
-    spotifyUrl: sp.external_urls?.spotify || '#',
-    desc: desc,
-    isNew: true,
-  };
+    cover_img: sp.images?.[0]?.url || null,
+    description: desc || null,
+    user_id: currentUser.id,
+    handle: currentUser.handle,
+  }).select().single();
+
+  if(error){ showToast('저장 중 오류가 생겼어요'); console.error(error); return; }
 
   // 피드 맨 앞에 추가
+  const newCard = {
+    id: 'db_'+data.id, dbId: data.id,
+    name: data.name, uploader: data.handle,
+    uid: data.user_id, emoji:'🎵', grad:'grad-1',
+    coverImg: data.cover_img, likes:0, comments:0,
+    spotifyUrl: data.spotify_url, fromDB:true,
+  };
   playlists.unshift(newCard);
   closeModal('uploadModal');
   renderPlaylists();
   showToast('🎵 피드에 공유됐어요!');
   setTimeout(()=>scrollToSection('today-playlists'), 600);
 
-  // 초기화
   sel.selectedIndex=0;
   document.getElementById('uploadDesc').value='';
   document.getElementById('uploadPreview').style.display='none';
@@ -1193,6 +1307,8 @@ async function init(){
   if(code){await handleOAuthCallback(code);}
   else{const t=localStorage.getItem('spotify_access_token');if(t){try{await initLoggedInUser(t);}catch(e){localStorage.removeItem('spotify_access_token');}}}
   renderPlaylists();renderUploaders();renderCelebs();
+  // DB에서 최신 피드 로드
+  await sbLoadFeed();
 }
 init();
 </script>
