@@ -901,11 +901,11 @@ function renderPlaylists() {
         <div class="playlist-name">${p.name}</div>
         <div class="playlist-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
         <div class="playlist-meta">
-          <button class="meta-btn ${likedPlaylists.has(p.id)?'liked':''}" data-like-id="${p.id}" onclick="toggleLike(${p.id}, this)" style="position:relative;">
+          <button class="meta-btn ${likedPlaylists.has(p.id)?'liked':''}" data-like-id="${p.id}" onclick="toggleLike('${p.id}', this)" style="position:relative;">
             <svg viewBox="0 0 24 24" fill="${likedPlaylists.has(p.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             <span class="like-count">${p.likes+(likedPlaylists.has(p.id)?1:0)}</span>
           </button>
-          <button class="meta-btn" onclick="openComments(${p.id})">
+          <button class="meta-btn" onclick="openComments('${p.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             ${(sampleComments[p.id]?.length||0)+(extraComments[p.id]?.length||0)}
           </button>
@@ -952,7 +952,7 @@ async function toggleLike(id, btnEl) {
   const wasLiked = likedPlaylists.has(id);
   wasLiked ? likedPlaylists.delete(id) : likedPlaylists.add(id);
 
-  const p = playlists.find(pl=>pl.id===id);
+  const p = playlists.find(pl=>pl.id==id);
   if(!p||!btnEl) return;
 
   const isNowLiked = likedPlaylists.has(id);
@@ -1007,7 +1007,7 @@ function renderCommentList(comments){
 async function openComments(id) {
   currentCommentPlaylistId = id;
   document.getElementById('commentModal').classList.add('active');
-  const p = playlists.find(pl=>pl.id===id);
+  const p = playlists.find(pl=>pl.id==id);
 
   if(p?.fromDB && p.dbId){
     // DB에서 댓글 로드
