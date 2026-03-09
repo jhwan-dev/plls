@@ -956,14 +956,17 @@ async function toggleLike(id, btnEl) {
   if(!p||!btnEl) return;
 
   const isNowLiked = likedPlaylists.has(id);
-  const count = p.likes + (isNowLiked ? 1 : 0);
 
   const svg = btnEl.querySelector('svg');
   svg.setAttribute('fill', isNowLiked ? 'currentColor' : 'none');
   btnEl.classList.toggle('liked', isNowLiked);
+
+  // 현재 표시된 숫자 기준으로 +1/-1
   const countEl = btnEl.querySelector('.like-count');
-  if(countEl) countEl.textContent = count;
-  p.likes = count;
+  const current = parseInt(countEl?.textContent || 0);
+  const newCount = isNowLiked ? current + 1 : current - 1;
+  if(countEl) countEl.textContent = newCount;
+  p.likes = newCount;
 
   btnEl.classList.remove('like-pop');
   void btnEl.offsetWidth;
