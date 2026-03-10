@@ -1167,11 +1167,12 @@ async function showPlaylistDetail(id) {
   showPage('playlist');
 
   // Spotify API로 트랙 불러오기
-  if(currentUser?.token && p.spotifyUrl) {
+  const activeToken = currentUser?.token || localStorage.getItem('spotify_access_token');
+  if(activeToken && p.spotifyUrl) {
     try {
       const match = p.spotifyUrl.match(/playlist\/([a-zA-Z0-9]+)/);
       if(match) {
-        const data = await fetchSpotifyAPI(`/playlists/${match[1]}/tracks?limit=50`, currentUser.token);
+        const data = await fetchSpotifyAPI(`/playlists/${match[1]}/tracks?limit=50`, activeToken);
         const tracks = (data.items||[]).filter(i=>i.track);
         document.getElementById('trackListBody').innerHTML = tracks.length
           ? tracks.map((item, i) => {
