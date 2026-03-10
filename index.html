@@ -461,7 +461,7 @@
   }
   .pd-info { flex: 1; min-width: 0; }
   .pd-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
-  .pd-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px,5vw,64px); letter-spacing: 2px; color: var(--white); line-height: 1; margin-bottom: 12px; }
+  .pd-title { font-family: 'Outfit', sans-serif; font-size: clamp(24px,4vw,48px); font-weight: 700; letter-spacing: 0; color: var(--white); line-height: 1.1; margin-bottom: 12px; }
   .pd-uploader { font-size: 14px; color: var(--gray); margin-bottom: 8px; cursor: pointer; }
   .pd-uploader span:hover { color: var(--white); }
   .pd-desc { font-size: 14px; color: var(--gray); font-style: italic; font-family: 'DM Serif Display', serif; margin-bottom: 16px; line-height: 1.6; }
@@ -1148,11 +1148,15 @@ async function showPlaylistDetail(id) {
         <div class="pd-type">플레이리스트</div>
         <div class="pd-title">${p.name}</div>
         <div class="pd-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
-        ${p.desc ? `<div class="pd-desc">"${p.desc}"</div>` : ''}
-        <div class="pd-meta">
-          <span>❤️ ${p.likes} 좋아요</span>
-          <span>💬 ${p.comments||0} 댓글</span>
+        <div id="pdDescSection" style="margin-bottom:12px;">
+          ${p.desc ? `<div class="pd-desc">"${p.desc}"</div>` : ''}
+          ${(isLoggedIn && currentUser && (p.userId === currentUser.id || p.uploader === currentUser.handle)) ? `
+            <div style="margin-top:8px;">
+              <textarea id="pdDescInput" placeholder="이 플레이리스트의 분위기는..." style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;box-sizing:border-box;"rows="2">${p.desc||''}</textarea>
+              <button onclick="savePlaylistDesc('${p.id}')" style="margin-top:6px;background:none;border:1px solid var(--green);color:var(--green);border-radius:16px;padding:4px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
+            </div>` : ''}
         </div>
+
         <div class="pd-actions">
           <button class="btn-green" style="padding:12px 32px;border-radius:30px;font-size:14px;" onclick="openSpotify('${p.spotifyUrl}')">
             ▶ 재생하기
@@ -1163,7 +1167,7 @@ async function showPlaylistDetail(id) {
           </button>
           <button class="meta-btn" onclick="openComments('${p.id}')" style="font-size:13px;gap:6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            댓글
+            <span>${p.comments||0}</span>
           </button>
           <button onclick="goBackFromPlaylist()" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
         </div>
@@ -1187,8 +1191,8 @@ async function showPlaylistDetail(id) {
     if(match) {
       document.getElementById('trackListBody').innerHTML = `
         <iframe
-          src="https://open.spotify.com/embed/playlist/${match[1]}?utm_source=generator&theme=0"
-          width="100%" height="500"
+          src="https://open.spotify.com/embed/playlist/${match[1]}?utm_source=generator&theme=0&compact=1"
+          width="100%" height="152"
           frameborder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
@@ -1199,6 +1203,20 @@ async function showPlaylistDetail(id) {
     }
   } else {
     document.getElementById('trackListBody').innerHTML = '<div class="track-loading">Spotify 링크가 없어요</div>';
+  }
+}
+
+async function savePlaylistDesc(playlistId) {
+  const input = document.getElementById('pdDescInput');
+  if(!input) return;
+  const desc = input.value.trim();
+  const { error } = await sb.from('playlists').update({ desc }).eq('id', playlistId);
+  if(!error) {
+    const p = playlists.find(pl => pl.id == playlistId);
+    if(p) p.desc = desc;
+    showToast('설명이 저장됐어요 ✨');
+  } else {
+    showToast('저장 실패. 다시 시도해주세요.');
   }
 }
 
