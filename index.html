@@ -507,6 +507,7 @@
   .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%); background:var(--dark3); border:1px solid var(--green); border-radius:24px; padding:12px 24px; font-size:13px; font-weight:600; color:var(--white); z-index:9999; white-space:nowrap; opacity:0; visibility:hidden; transition:opacity 0.3s ease, visibility 0.3s ease; pointer-events:none; }
   .toast.show { opacity:1; visibility:visible; }
   body.player-open .toast { bottom:84px; }
+  #embedBar ~ * .toast, body:has(#embedBar[style*='flex']) .toast { bottom:84px; }
 
   /* ===== MINI PLAYER ===== */
   #miniPlayer {
@@ -853,6 +854,17 @@
 <div class="toast" id="toast"></div>
 
 <!-- MINI PLAYER -->
+<!-- EMBED BAR: 상세페이지 나와도 재생 유지 -->
+<div id="embedBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:250;height:68px;background:rgba(10,10,10,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);align-items:center;padding:0 20px;gap:14px;cursor:pointer;" onclick="showPage('playlist');this.style.display='none';">
+  <img id="ebCover" src="" style="width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--dark3);flex-shrink:0;">
+  <div style="flex:1;min-width:0;">
+    <div id="ebTitle" style="font-size:13px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+    <div style="font-size:11px;color:var(--green);margin-top:2px;">▶ 재생 중</div>
+  </div>
+  <button onclick="event.stopPropagation();showPage('playlist');" style="background:var(--dark3);border:1px solid var(--border);color:var(--white);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;white-space:nowrap;">펼치기</button>
+  <button onclick="event.stopPropagation();closeEmbedBar();" style="background:none;border:none;color:var(--gray);font-size:22px;cursor:pointer;line-height:1;padding:4px;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">×</button>
+</div>
+
 <div id="miniPlayer">
   <!-- 왼쪽: 트랙 정보 -->
   <div class="mp-left">
@@ -1153,7 +1165,7 @@ async function showPlaylistDetail(id) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             댓글
           </button>
-          <button onclick="showPage('home')" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
+          <button onclick="goBackFromPlaylist()" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
         </div>
       </div>
     </div>
@@ -1162,6 +1174,12 @@ async function showPlaylistDetail(id) {
     </div>`;
 
   showPage('playlist');
+  // embedBar 정보 세팅 (뒤로 갔을 때 표시용)
+  const eb = document.getElementById('embedBar');
+  const ebCover = document.getElementById('ebCover');
+  const ebTitle = document.getElementById('ebTitle');
+  if(ebCover) ebCover.src = p.coverImg || '';
+  if(ebTitle) ebTitle.textContent = p.name;
 
   // Spotify 임베드 플레이어
   if(p.spotifyUrl) {
@@ -1182,6 +1200,20 @@ async function showPlaylistDetail(id) {
   } else {
     document.getElementById('trackListBody').innerHTML = '<div class="track-loading">Spotify 링크가 없어요</div>';
   }
+}
+
+function goBackFromPlaylist() {
+  showPage('home');
+  const eb = document.getElementById('embedBar');
+  if(eb) eb.style.display = 'flex';
+}
+
+function closeEmbedBar() {
+  const eb = document.getElementById('embedBar');
+  if(eb) eb.style.display = 'none';
+  // iframe src 제거해서 재생 중단
+  const iframe = document.querySelector('#trackListBody iframe');
+  if(iframe) iframe.src = '';
 }
 
 function showProfile(uid) {
