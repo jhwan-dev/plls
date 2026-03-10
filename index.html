@@ -461,10 +461,10 @@
   }
   .pd-info { flex: 1; min-width: 0; }
   .pd-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
-  .pd-title { font-family: 'Outfit', sans-serif; font-size: clamp(24px,4vw,48px); font-weight: 700; letter-spacing: 0; color: var(--white); line-height: 1.1; margin-bottom: 12px; }
+  .pd-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,5vw,72px); font-weight: 400; letter-spacing: 2px; color: var(--white); line-height: 1; margin-bottom: 12px; }
   .pd-uploader { font-size: 14px; color: var(--gray); margin-bottom: 8px; cursor: pointer; }
   .pd-uploader span:hover { color: var(--white); }
-  .pd-desc { font-size: 14px; color: var(--gray); font-style: italic; font-family: 'DM Serif Display', serif; margin-bottom: 16px; line-height: 1.6; }
+  .pd-desc { font-size: 14px; color: var(--gray); font-family: 'Outfit', sans-serif; margin-bottom: 16px; line-height: 1.6; }
   .pd-meta { display: flex; align-items: center; gap: 20px; color: var(--gray-dim); font-size: 13px; }
   .pd-actions { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
 
@@ -496,6 +496,8 @@
 
   @media(max-width:768px){
     .pd-hero { flex-direction: column; padding: 90px 20px 30px; gap: 20px; }
+    .pd-info { flex-direction: column !important; }
+    #pdDescSection { width: 100% !important; padding-top: 0 !important; }
     .pd-cover, .pd-cover-emoji { width: 140px; height: 140px; }
     .track-list { padding: 0 20px 60px; }
     .track-list-header { grid-template-columns: 32px 1fr 50px; }
@@ -1142,32 +1144,35 @@ async function showPlaylistDetail(id) {
   document.getElementById('playlistDetailContent').innerHTML = `
     <div class="pd-hero">
       ${coverHtml}
-      <div class="pd-info">
-        <div class="pd-type">플레이리스트</div>
-        <div class="pd-title">${p.name}</div>
-        <div class="pd-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
-        <div id="pdDescSection" style="margin-bottom:12px;">
-          ${p.desc ? `<div class="pd-desc">"${p.desc}"</div>` : ''}
+      <div class="pd-info" style="display:flex;gap:40px;align-items:flex-start;width:100%;">
+        <!-- 왼쪽: 제목 + 업로더 + 액션 -->
+        <div style="flex:1;min-width:0;">
+          <div class="pd-type">플레이리스트</div>
+          <div class="pd-title">${p.name}</div>
+          <div class="pd-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
+          <div class="pd-actions">
+            <button class="btn-green" style="padding:12px 32px;border-radius:30px;font-size:14px;" onclick="openSpotify('${p.spotifyUrl}')">
+              ▶ 재생하기
+            </button>
+            <button class="meta-btn ${liked?'liked':''}" id="pdLikeBtn" onclick="toggleLike('${p.id}', this)" style="font-size:13px;gap:6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="${liked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span class="like-count">${p.likes+(liked?1:0)}</span>
+            </button>
+            <button class="meta-btn" onclick="openComments('${p.id}')" style="font-size:13px;gap:6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>${p.comments||0}</span>
+            </button>
+            <button onclick="goBackFromPlaylist()" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
+          </div>
+        </div>
+        <!-- 오른쪽: 설명 -->
+        <div id="pdDescSection" style="width:280px;flex-shrink:0;padding-top:28px;">
+          ${p.desc ? `<div class="pd-desc">${p.desc}</div>` : ''}
           ${(isLoggedIn && currentUser && (p.userId === currentUser.id || p.uploader === currentUser.handle)) ? `
-            <div style="margin-top:8px;">
-              <textarea id="pdDescInput" placeholder="이 플레이리스트의 분위기는..." style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;box-sizing:border-box;"rows="2">${p.desc||''}</textarea>
+            <div>
+              <textarea id="pdDescInput" placeholder="이 플레이리스트의 분위기는..." style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;box-sizing:border-box;" rows="4">${p.desc||''}</textarea>
               <button onclick="savePlaylistDesc('${p.id}')" style="margin-top:6px;background:none;border:1px solid var(--green);color:var(--green);border-radius:16px;padding:4px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
             </div>` : ''}
-        </div>
-
-        <div class="pd-actions">
-          <button class="btn-green" style="padding:12px 32px;border-radius:30px;font-size:14px;" onclick="openSpotify('${p.spotifyUrl}')">
-            ▶ 재생하기
-          </button>
-          <button class="meta-btn ${liked?'liked':''}" id="pdLikeBtn" onclick="toggleLike('${p.id}', this)" style="font-size:13px;gap:6px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="${liked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            <span class="like-count">${p.likes+(liked?1:0)}</span>
-          </button>
-          <button class="meta-btn" onclick="openComments('${p.id}')" style="font-size:13px;gap:6px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>${p.comments||0}</span>
-          </button>
-          <button onclick="goBackFromPlaylist()" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
         </div>
       </div>
     </div>
