@@ -1171,30 +1171,30 @@ async function showPlaylistDetail(id) {
     try {
       const match = p.spotifyUrl.match(/playlist\/([a-zA-Z0-9]+)/);
       if(match) {
-        const data = await fetchSpotifyAPI(\`/playlists/\${match[1]}/tracks?limit=50&fields=items(track(id,name,duration_ms,artists,album(name,images)))\`, currentUser.token);
+        const data = await fetchSpotifyAPI(`/playlists/${match[1]}/tracks?limit=50&fields=items(track(id,name,duration_ms,artists,album(name,images)))`, currentUser.token);
         const tracks = (data.items||[]).filter(i=>i.track);
         document.getElementById('trackListBody').innerHTML = tracks.length
           ? tracks.map((item, i) => {
               const t = item.track;
               const dur = Math.floor(t.duration_ms/1000);
-              const time = \`\${Math.floor(dur/60)}:\${String(dur%60).padStart(2,'0')}\`;
+              const time = `${Math.floor(dur/60)}:${String(dur%60).padStart(2,'0')}`;
               const art = t.album.images?.[2]?.url || t.album.images?.[0]?.url || '';
               const artists = t.artists.map(a=>a.name).join(', ');
-              return \`<div class="track-item" onclick="openSpotify('https://open.spotify.com/track/\${t.id}')">
+              return `<div class="track-item" onclick="openSpotify('https://open.spotify.com/track/${t.id}')">
                 <div class="track-num" style="position:relative;">
-                  <span class="track-num">\${i+1}</span>
+                  <span class="track-num">${i+1}</span>
                   <span class="track-play-btn">▶</span>
                 </div>
                 <div class="track-name-wrap">
-                  <img class="track-album-art" src="\${art}" onerror="this.style.display='none'">
+                  <img class="track-album-art" src="${art}" onerror="this.style.display='none'">
                   <div>
-                    <div class="track-name">\${t.name}</div>
-                    <div class="track-artist">\${artists}</div>
+                    <div class="track-name">${t.name}</div>
+                    <div class="track-artist">${artists}</div>
                   </div>
                 </div>
-                <div class="track-album">\${t.album.name}</div>
-                <div class="track-duration">\${time}</div>
-              </div>\`;
+                <div class="track-album">${t.album.name}</div>
+                <div class="track-duration">${time}</div>
+              </div>`;
             }).join('')
           : '<div class="track-loading">트랙 정보가 없어요</div>';
       }
