@@ -446,6 +446,7 @@
     padding: 80px 48px 40px;
     background: linear-gradient(to bottom, rgba(29,185,84,0.12), transparent);
     display: flex; gap: 0; align-items: stretch;
+    min-height: 220px;
   }
   .pd-cover {
     width: 200px; height: 200px; border-radius: 12px;
@@ -460,8 +461,8 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
   .pd-info { flex: 1; min-width: 0; }
-  .pd-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
-  .pd-title { font-family: 'Outfit', sans-serif; font-size: clamp(48px,7vw,96px); font-weight: 800; letter-spacing: -2px; color: var(--white); line-height: 0.95; margin-bottom: 20px; }
+  .pd-type { display: none; }
+  .pd-title { font-family: 'Outfit', sans-serif; font-size: clamp(32px,5vw,72px); font-weight: 800; letter-spacing: -1px; color: var(--white); line-height: 1.05; margin-bottom: 16px; word-break: keep-all; overflow-wrap: break-word; }
   .pd-uploader { font-size: 14px; color: var(--gray); margin-bottom: 8px; cursor: pointer; }
   .pd-uploader span:hover { color: var(--white); }
   .pd-desc { font-size: 18px; color: var(--gray); font-family: 'Outfit', sans-serif; margin-bottom: 16px; line-height: 1.6; }
@@ -1144,13 +1145,13 @@ async function showPlaylistDetail(id) {
   document.getElementById('playlistDetailContent').innerHTML = `
     <div class="pd-hero">
       ${coverHtml}
-      <div class="pd-info" style="display:flex;gap:48px;align-items:flex-start;width:100%;">
-        <!-- 왼쪽: 제목 + 업로더 + 액션 -->
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4px;">
+      <div class="pd-info" style="display:flex;align-items:stretch;width:100%;">
+        <!-- 왼쪽 1/3: 제목 + 업로더 + 액션 -->
+        <div style="width:33%;flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4px;padding-right:32px;">
           <div class="pd-title">${p.name}</div>
           <div class="pd-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
           <div class="pd-actions">
-            <button class="btn-green" style="padding:12px 32px;border-radius:30px;font-size:14px;" onclick="openSpotify('${p.spotifyUrl}')">
+            <button class="btn-green" style="padding:10px 20px;border-radius:30px;font-size:13px;" onclick="openSpotify('${p.spotifyUrl}')">
               ▶ 재생하기
             </button>
             <button class="meta-btn ${liked?'liked':''}" id="pdLikeBtn" onclick="toggleLike('${p.id}', this)" style="font-size:13px;gap:6px;">
@@ -1164,13 +1165,13 @@ async function showPlaylistDetail(id) {
             <button onclick="goBackFromPlaylist()" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
           </div>
         </div>
-        <!-- 오른쪽: 설명 (구분선 포함) -->
-        <div id="pdDescSection" style="width:300px;flex-shrink:0;border-left:1px solid var(--border);padding-left:40px;display:flex;flex-direction:column;justify-content:center;">
+        <!-- 오른쪽 2/3: 설명 -->
+        <div id="pdDescSection" style="flex:1;border-left:1px solid var(--border);padding-left:40px;display:flex;flex-direction:column;justify-content:center;min-height:160px;">
           ${p.desc ? `<div class="pd-desc">${p.desc}</div>` : ''}
           ${(isLoggedIn && currentUser && (p.userId === currentUser.id || p.uploader === currentUser.handle)) ? `
             <div>
-              <textarea id="pdDescInput" placeholder="이 플레이리스트의 분위기는..." style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;box-sizing:border-box;" rows="4">${p.desc||''}</textarea>
-              <button onclick="savePlaylistDesc('${p.id}')" style="margin-top:6px;background:none;border:1px solid var(--green);color:var(--green);border-radius:16px;padding:4px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
+              <textarea id="pdDescInput" placeholder="이 플레이리스트의 분위기는..." style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);padding:8px 0;color:var(--white);font-family:'Outfit',sans-serif;font-size:16px;resize:none;outline:none;box-sizing:border-box;line-height:1.6;" rows="3">${p.desc||''}</textarea>
+              <button onclick="savePlaylistDesc('${p.id}')" style="margin-top:8px;background:none;border:1px solid var(--green);color:var(--green);border-radius:16px;padding:4px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
             </div>` : ''}
         </div>
       </div>
