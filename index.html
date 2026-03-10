@@ -1171,7 +1171,7 @@ async function showPlaylistDetail(id) {
     try {
       const match = p.spotifyUrl.match(/playlist\/([a-zA-Z0-9]+)/);
       if(match) {
-        const data = await fetchSpotifyAPI(`/playlists/${match[1]}/tracks?limit=50&fields=items(track(id,name,duration_ms,artists,album(name,images)))`, currentUser.token);
+        const data = await fetchSpotifyAPI(`/playlists/${match[1]}/tracks?limit=50`, currentUser.token);
         const tracks = (data.items||[]).filter(i=>i.track);
         document.getElementById('trackListBody').innerHTML = tracks.length
           ? tracks.map((item, i) => {
