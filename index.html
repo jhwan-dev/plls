@@ -1208,11 +1208,10 @@ async function savePlaylistDesc(playlistId) {
   const input = document.getElementById('pdDescInput');
   if(!input) return;
   const desc = input.value.trim();
-  console.log('saving desc:', playlistId, desc);
-  const { data, error } = await sb.from('playlists').update({ description: desc }).eq('id', playlistId);
-  console.log('result:', data, error);
+  const p = playlists.find(pl => pl.id == playlistId);
+  const realId = p?.dbId || playlistId;
+  const { error } = await sb.from('playlists').update({ description: desc }).eq('id', realId);
   if(!error) {
-    const p = playlists.find(pl => pl.id == playlistId);
     if(p) p.desc = desc;
     showToast('설명이 저장됐어요 ✨');
   } else {
