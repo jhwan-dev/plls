@@ -441,6 +441,69 @@
   .comment-input-row { display:flex; gap:10px; }
   .comment-input-row .form-input { flex:1; }
 
+  /* ===== PLAYLIST DETAIL ===== */
+  .pd-hero {
+    padding: 100px 48px 40px;
+    background: linear-gradient(to bottom, rgba(29,185,84,0.12), transparent);
+    display: flex; gap: 40px; align-items: flex-end;
+  }
+  .pd-cover {
+    width: 200px; height: 200px; border-radius: 12px;
+    flex-shrink: 0; object-fit: cover;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    background: var(--dark3);
+  }
+  .pd-cover-emoji {
+    width: 200px; height: 200px; border-radius: 12px;
+    flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 72px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .pd-info { flex: 1; min-width: 0; }
+  .pd-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+  .pd-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px,5vw,64px); letter-spacing: 2px; color: var(--white); line-height: 1; margin-bottom: 12px; }
+  .pd-uploader { font-size: 14px; color: var(--gray); margin-bottom: 8px; cursor: pointer; }
+  .pd-uploader span:hover { color: var(--white); }
+  .pd-desc { font-size: 14px; color: var(--gray); font-style: italic; font-family: 'DM Serif Display', serif; margin-bottom: 16px; line-height: 1.6; }
+  .pd-meta { display: flex; align-items: center; gap: 20px; color: var(--gray-dim); font-size: 13px; }
+  .pd-actions { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
+
+  .track-list { padding: 0 48px 80px; }
+  .track-list-header {
+    display: grid; grid-template-columns: 40px 1fr 1fr 60px;
+    gap: 16px; padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--gray-dim);
+  }
+  .track-item {
+    display: grid; grid-template-columns: 40px 1fr 1fr 60px;
+    gap: 16px; padding: 10px 16px; border-radius: 6px;
+    align-items: center; transition: background 0.15s; cursor: pointer;
+  }
+  .track-item:hover { background: var(--dark2); }
+  .track-num { font-size: 13px; color: var(--gray-dim); text-align: center; }
+  .track-item:hover .track-num { display: none; }
+  .track-play-btn { display: none; text-align: center; }
+  .track-item:hover .track-play-btn { display: block; color: var(--white); }
+  .track-name-wrap { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .track-album-art { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(--dark3); }
+  .track-name { font-size: 14px; font-weight: 500; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-artist { font-size: 12px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .track-album { font-size: 13px; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-duration { font-size: 13px; color: var(--gray-dim); text-align: right; }
+  .track-loading { text-align: center; padding: 60px; color: var(--gray-dim); font-size: 14px; }
+
+  @media(max-width:768px){
+    .pd-hero { flex-direction: column; padding: 90px 20px 30px; gap: 20px; }
+    .pd-cover, .pd-cover-emoji { width: 140px; height: 140px; }
+    .track-list { padding: 0 20px 60px; }
+    .track-list-header { grid-template-columns: 32px 1fr 50px; }
+    .track-list-header .th-album { display: none; }
+    .track-item { grid-template-columns: 32px 1fr 50px; }
+    .track-album { display: none; }
+  }
+
   .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%); background:var(--dark3); border:1px solid var(--green); border-radius:24px; padding:12px 24px; font-size:13px; font-weight:600; color:var(--white); z-index:9999; white-space:nowrap; opacity:0; visibility:hidden; transition:opacity 0.3s ease, visibility 0.3s ease; pointer-events:none; }
   .toast.show { opacity:1; visibility:visible; }
   body.player-open .toast { bottom:84px; }
@@ -737,6 +800,11 @@
   <div id="profileContent"></div>
 </div>
 
+<!-- PLAYLIST DETAIL -->
+<div id="page-playlist" class="page">
+  <div id="playlistDetailContent"></div>
+</div>
+
 <!-- COMMENT MODAL -->
 <div class="modal-overlay" id="commentModal">
   <div class="modal">
@@ -890,10 +958,10 @@ function renderPlaylists() {
       ? `<img src="${p.coverImg}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.innerHTML='<span style=font-size:52px>${p.emoji||'🎵'}</span>'">`
       : `<span style="font-size:52px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5))">${p.emoji||'🎵'}</span>`;
     return `
-    <div class="playlist-card fade-in" style="animation-delay:${i*0.05}s">
+    <div class="playlist-card fade-in" style="animation-delay:${i*0.05}s" onclick="showPlaylistDetail('${p.id}')">
       <div class="playlist-cover-img ${p.coverImg?'':p.grad}" style="position:relative;${p.coverImg?'background:var(--dark2);':''}">
         ${coverHtml}
-        <div class="play-overlay" onclick="openSpotify('${p.spotifyUrl}')">
+        <div class="play-overlay" onclick="event.stopPropagation();openSpotify('${p.spotifyUrl}')">
           <svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
       </div>
@@ -901,11 +969,11 @@ function renderPlaylists() {
         <div class="playlist-name">${p.name}</div>
         <div class="playlist-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
         <div class="playlist-meta">
-          <button class="meta-btn ${likedPlaylists.has(p.id)?'liked':''}" data-like-id="${p.id}" onclick="toggleLike('${p.id}', this)" style="position:relative;">
+          <button class="meta-btn ${likedPlaylists.has(p.id)?'liked':''}" data-like-id="${p.id}" onclick="event.stopPropagation();toggleLike('${p.id}', this)" style="position:relative;">
             <svg viewBox="0 0 24 24" fill="${likedPlaylists.has(p.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             <span class="like-count">${p.likes+(likedPlaylists.has(p.id)?1:0)}</span>
           </button>
-          <button class="meta-btn" onclick="openComments('${p.id}')">
+          <button class="meta-btn" onclick="event.stopPropagation();openComments('${p.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             ${(sampleComments[p.id]?.length||0)+(extraComments[p.id]?.length||0)}
           </button>
@@ -1049,6 +1117,95 @@ async function submitComment() {
 
 function closeModal(id){document.getElementById(id).classList.remove('active');}
 function openSpotify(url){showToast('🎵 Spotify로 이동합니다...');setTimeout(()=>window.open(url,'_blank'),500);}
+
+async function showPlaylistDetail(id) {
+  const p = playlists.find(pl => pl.id == id);
+  if(!p) return;
+
+  // 커버 이미지 or 이모지
+  const coverHtml = p.coverImg
+    ? `<img class="pd-cover" src="${p.coverImg}" onerror="this.outerHTML='<div class=pd-cover-emoji ${p.grad}><span style=font-size:72px>${p.emoji||'🎵'}</span></div>'">`
+    : `<div class="pd-cover-emoji ${p.grad}"><span style="font-size:72px">${p.emoji||'🎵'}</span></div>`;
+
+  const liked = likedPlaylists.has(p.id);
+
+  document.getElementById('playlistDetailContent').innerHTML = `
+    <div class="pd-hero">
+      ${coverHtml}
+      <div class="pd-info">
+        <div class="pd-type">플레이리스트</div>
+        <div class="pd-title">${p.name}</div>
+        <div class="pd-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
+        ${p.desc ? `<div class="pd-desc">"${p.desc}"</div>` : ''}
+        <div class="pd-meta">
+          <span>❤️ ${p.likes} 좋아요</span>
+          <span>💬 ${p.comments||0} 댓글</span>
+        </div>
+        <div class="pd-actions">
+          <button class="btn-green" style="padding:12px 32px;border-radius:30px;font-size:14px;" onclick="openSpotify('${p.spotifyUrl}')">
+            ▶ 재생하기
+          </button>
+          <button class="meta-btn ${liked?'liked':''}" id="pdLikeBtn" onclick="toggleLike('${p.id}', this)" style="font-size:13px;gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="${liked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span class="like-count">${p.likes+(liked?1:0)}</span>
+          </button>
+          <button class="meta-btn" onclick="openComments('${p.id}')" style="font-size:13px;gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            댓글
+          </button>
+          <button onclick="showPage('home')" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
+        </div>
+      </div>
+    </div>
+    <div class="track-list">
+      <div class="track-list-header">
+        <div>#</div><div>제목</div><div class="th-album">앨범</div><div style="text-align:right">시간</div>
+      </div>
+      <div id="trackListBody"><div class="track-loading">🎵 트랙 불러오는 중...</div></div>
+    </div>`;
+
+  showPage('playlist');
+
+  // Spotify API로 트랙 불러오기
+  if(currentUser?.token && p.spotifyUrl) {
+    try {
+      const match = p.spotifyUrl.match(/playlist\/([a-zA-Z0-9]+)/);
+      if(match) {
+        const data = await fetchSpotifyAPI(\`/playlists/\${match[1]}/tracks?limit=50&fields=items(track(id,name,duration_ms,artists,album(name,images)))\`, currentUser.token);
+        const tracks = (data.items||[]).filter(i=>i.track);
+        document.getElementById('trackListBody').innerHTML = tracks.length
+          ? tracks.map((item, i) => {
+              const t = item.track;
+              const dur = Math.floor(t.duration_ms/1000);
+              const time = \`\${Math.floor(dur/60)}:\${String(dur%60).padStart(2,'0')}\`;
+              const art = t.album.images?.[2]?.url || t.album.images?.[0]?.url || '';
+              const artists = t.artists.map(a=>a.name).join(', ');
+              return \`<div class="track-item" onclick="openSpotify('https://open.spotify.com/track/\${t.id}')">
+                <div class="track-num" style="position:relative;">
+                  <span class="track-num">\${i+1}</span>
+                  <span class="track-play-btn">▶</span>
+                </div>
+                <div class="track-name-wrap">
+                  <img class="track-album-art" src="\${art}" onerror="this.style.display='none'">
+                  <div>
+                    <div class="track-name">\${t.name}</div>
+                    <div class="track-artist">\${artists}</div>
+                  </div>
+                </div>
+                <div class="track-album">\${t.album.name}</div>
+                <div class="track-duration">\${time}</div>
+              </div>\`;
+            }).join('')
+          : '<div class="track-loading">트랙 정보가 없어요</div>';
+      }
+    } catch(e) {
+      document.getElementById('trackListBody').innerHTML = '<div class="track-loading">트랙을 불러오지 못했어요</div>';
+      console.error(e);
+    }
+  } else {
+    document.getElementById('trackListBody').innerHTML = '<div class="track-loading">로그인하면 트랙 목록을 볼 수 있어요 🎵</div>';
+  }
+}
 
 function showProfile(uid) {
   const p=profileData[uid];if(!p)return;
