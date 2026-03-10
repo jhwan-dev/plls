@@ -1209,7 +1209,7 @@ async function savePlaylistDesc(playlistId) {
   if(!input) return;
   const desc = input.value.trim();
   const p = playlists.find(pl => pl.id == playlistId);
-  const realId = p?.dbId || playlistId;
+  const realId = p?.dbId || String(playlistId).replace('db_', '');
   const { error } = await sb.from('playlists').update({ description: desc }).eq('id', realId);
   if(!error) {
     if(p) p.desc = desc;
