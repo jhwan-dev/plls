@@ -443,9 +443,9 @@
 
   /* ===== PLAYLIST DETAIL ===== */
   .pd-hero {
-    padding: 100px 48px 40px;
+    padding: 80px 48px 40px;
     background: linear-gradient(to bottom, rgba(29,185,84,0.12), transparent);
-    display: flex; gap: 40px; align-items: flex-end;
+    display: flex; gap: 0; align-items: stretch;
   }
   .pd-cover {
     width: 200px; height: 200px; border-radius: 12px;
@@ -461,10 +461,10 @@
   }
   .pd-info { flex: 1; min-width: 0; }
   .pd-type { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
-  .pd-title { font-family: 'Outfit', sans-serif; font-size: clamp(40px,6vw,80px); font-weight: 800; letter-spacing: -1px; color: var(--white); line-height: 1; margin-bottom: 16px; }
+  .pd-title { font-family: 'Outfit', sans-serif; font-size: clamp(48px,7vw,96px); font-weight: 800; letter-spacing: -2px; color: var(--white); line-height: 0.95; margin-bottom: 20px; }
   .pd-uploader { font-size: 14px; color: var(--gray); margin-bottom: 8px; cursor: pointer; }
   .pd-uploader span:hover { color: var(--white); }
-  .pd-desc { font-size: 14px; color: var(--gray); font-family: 'Outfit', sans-serif; margin-bottom: 16px; line-height: 1.6; }
+  .pd-desc { font-size: 18px; color: var(--gray); font-family: 'Outfit', sans-serif; margin-bottom: 16px; line-height: 1.6; }
   .pd-meta { display: flex; align-items: center; gap: 20px; color: var(--gray-dim); font-size: 13px; }
   .pd-actions { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
 
@@ -1146,8 +1146,7 @@ async function showPlaylistDetail(id) {
       ${coverHtml}
       <div class="pd-info" style="display:flex;gap:48px;align-items:flex-start;width:100%;">
         <!-- 왼쪽: 제목 + 업로더 + 액션 -->
-        <div style="flex:1;min-width:0;">
-          <div class="pd-type">플레이리스트</div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4px;">
           <div class="pd-title">${p.name}</div>
           <div class="pd-uploader"><span onclick="showProfile(${p.uid})">${p.uploader}</span></div>
           <div class="pd-actions">
@@ -1165,9 +1164,9 @@ async function showPlaylistDetail(id) {
             <button onclick="goBackFromPlaylist()" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
           </div>
         </div>
-        <!-- 오른쪽: 설명 -->
-        <div id="pdDescSection" style="width:260px;flex-shrink:0;">
-          ${p.desc ? `<div class="pd-desc">${p.desc}</div>` : (!isLoggedIn || !currentUser || (p.userId !== currentUser.id && p.uploader !== currentUser.handle) ? '' : '')}
+        <!-- 오른쪽: 설명 (구분선 포함) -->
+        <div id="pdDescSection" style="width:300px;flex-shrink:0;border-left:1px solid var(--border);padding-left:40px;display:flex;flex-direction:column;justify-content:center;">
+          ${p.desc ? `<div class="pd-desc">${p.desc}</div>` : ''}
           ${(isLoggedIn && currentUser && (p.userId === currentUser.id || p.uploader === currentUser.handle)) ? `
             <div>
               <textarea id="pdDescInput" placeholder="이 플레이리스트의 분위기는..." style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;box-sizing:border-box;" rows="4">${p.desc||''}</textarea>
