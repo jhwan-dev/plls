@@ -896,6 +896,17 @@
   <div id="profileContent"></div>
 </div>
 
+<!-- 팔로워/팔로잉 목록 모달 -->
+<div class="title-modal" id="followListModal" onclick="if(event.target===this)document.getElementById('followListModal').classList.remove('open')">
+  <div class="title-modal-box" style="width:min(400px,92vw);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div id="followListTitle" style="font-size:16px;font-weight:700;color:var(--white);"></div>
+      <button onclick="document.getElementById('followListModal').classList.remove('open')" style="background:none;border:none;color:var(--gray);font-size:22px;cursor:pointer;">×</button>
+    </div>
+    <div id="followListBody" style="max-height:360px;overflow-y:auto;"></div>
+  </div>
+</div>
+
 <!-- 칭호 선택 모달 -->
 <div class="title-modal" id="titleModal" onclick="if(event.target===this)closeTitleModal()">
   <div class="title-modal-box">
@@ -1351,28 +1362,51 @@ function getProfileTitle(uid) {
   return userTitles[uid] || null;
 }
 
-function showProfile(uid) {
+async function showProfile(uid) {
   currentProfileUid = uid;
-  const p = profileData[uid];
-  const isMe = isLoggedIn && currentUser && (String(uid) === String(currentUser.id) || (uid <= 8 && currentUser.spotifyId === MY_SPOTIFY_ID));
+
+  // 내 프로필이면 showProfileDirect로
+  if(isLoggedIn && currentUser && String(uid) === String(currentUser.id)){
+    showProfileDirect(); return;
+  }
+
+  // DB에서 유저 정보 로드
+  let dbUser = null;
+  if(uid && String(uid).length > 10) { // Supabase UUID or Spotify ID
+    const {data} = await sb.from('users').select('*').eq('id', uid).single();
+    dbUser = data;
+  }
+
+  const p = profileData[uid]; // 샘플 데이터 fallback
+  const isMe = false;
   const isMyAccount = isLoggedIn && currentUser && currentUser.spotifyId === MY_SPOTIFY_ID;
-  const myPlls = playlists.filter(pl => pl.uid == uid);
-  const title = getProfileTitle(uid);
+  const myPlls = playlists.filter(pl => pl.uid == uid || pl.userId == uid);
+  const title = userTitles[uid] || dbUser?.title || null;
+  if(dbUser?.title) userTitles[uid] = dbUser.title;
+  if(dbUser?.bio) userBios[uid] = dbUser.bio;
+
+  // 팔로워/팔로잉 수 DB에서
+  const [{data: followerData}, {data: followingData}] = await Promise.all([
+    sb.from('follows').select('follower_id').eq('following_id', uid),
+    sb.from('follows').select('following_id').eq('follower_id', uid)
+  ]);
+  const followerCount = followerData?.length || p?.followers || 0;
+  const followingCount = followingData?.length || p?.following || 0;
 
   // 프로필 이미지
   let avatarHtml = '';
-  if(p) {
+  if(dbUser?.avatar_url) {
+    avatarHtml = `<img class="profile-avatar-img" src="${dbUser.avatar_url}" onerror="this.outerHTML='<div class=profile-avatar-emoji>🎵</div>'">`;
+  } else if(p) {
     avatarHtml = `<div class="profile-avatar-emoji"><span>${p.emoji}</span></div>`;
-  } else if(isMe && currentUser?.image) {
-    avatarHtml = `<img class="profile-avatar-img" src="${currentUser.image}" onerror="this.outerHTML='<div class=profile-avatar-emoji>🎵</div>'">`;
   } else {
     avatarHtml = `<div class="profile-avatar-emoji"><span>🎵</span></div>`;
   }
 
-  const handle = p ? '@'+p.name : (currentUser?.handle || '@user');
-  const bio = userBios[uid] || (p?.bio ? p.bio : '');
-  const followers = p?.followers || 0;
-  const following = p?.following || 0;
+  const handle = dbUser?.handle || (p ? '@'+p.name : '@user');
+  const bio = dbUser?.bio || userBios[uid] || p?.bio || '';
+  const followers = followerCount;
+  const following = followingCount;
   const pllCount = myPlls.length;
 
   const titleBadge = title
@@ -1395,8 +1429,8 @@ function showProfile(uid) {
           </div>
           <div class="profile-stats">
             <div class="profile-stat"><strong>${pllCount}</strong><span>플리</span></div>
-            <div class="profile-stat"><strong>${followers.toLocaleString()}</strong><span>팔로워</span></div>
-            <div class="profile-stat"><strong>${following.toLocaleString()}</strong><span>팔로잉</span></div>
+            <div class="profile-stat" style="cursor:pointer" onclick="showFollowList('${uid}','followers')"><strong>${followers}</strong><span>팔로워</span></div>
+            <div class="profile-stat" style="cursor:pointer" onclick="showFollowList('${uid}','following')"><strong>${following}</strong><span>팔로잉</span></div>
           </div>
           ${bio ? `<div class="profile-bio-text">${bio}</div>` : ''}
           ${isMe ? `
@@ -1473,6 +1507,58 @@ async function saveBio() {
   if(error) { showToast('저장 실패: ' + error.message); console.error(error); return; }
   showToast('소개가 저장됐어요 ✨');
   showMyProfile();
+}
+
+async function showFollowList(uid, type) {
+  const modal = document.getElementById('followListModal');
+  const titleEl = document.getElementById('followListTitle');
+  const bodyEl = document.getElementById('followListBody');
+  titleEl.textContent = type === 'followers' ? '팔로워' : '팔로잉';
+  bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray-dim);">불러오는 중...</div>';
+  modal.classList.add('open');
+
+  let userIds = [];
+  if(type === 'followers'){
+    const {data} = await sb.from('follows').select('follower_id').eq('following_id', uid);
+    userIds = data?.map(r => r.follower_id) || [];
+  } else {
+    const {data} = await sb.from('follows').select('following_id').eq('follower_id', uid);
+    userIds = data?.map(r => r.following_id) || [];
+  }
+
+  if(userIds.length === 0){
+    bodyEl.innerHTML = `<div style="text-align:center;padding:30px;color:var(--gray-dim);font-size:14px;">${type==='followers'?'아직 팔로워가 없어요':'아직 팔로잉이 없어요'}</div>`;
+    return;
+  }
+
+  const {data: users} = await sb.from('users').select('id,handle,name,avatar_url,title').in('id', userIds);
+  bodyEl.innerHTML = (users||[]).map(u => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background=''" onclick="document.getElementById('followListModal').classList.remove('open');showProfile('${u.id}')">
+      ${u.avatar_url
+        ? `<img src="${u.avatar_url}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+        : `<div style="width:44px;height:44px;border-radius:50%;background:var(--dark3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--border);">🎵</div>`}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;color:var(--white);">${u.handle||('@'+u.name)}</div>
+        ${u.title ? `<div style="font-size:11px;color:var(--green);">✦ ${u.title}</div>` : ''}
+      </div>
+      ${isLoggedIn && currentUser && u.id !== currentUser.id ? `
+        <button onclick="event.stopPropagation();toggleFollowBtn('${u.id}',this)" style="background:none;border:1px solid var(--border);color:var(--white);border-radius:16px;padding:5px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">
+          ${followedUsers.has(u.id)?'팔로잉':'팔로우'}
+        </button>` : ''}
+    </div>`).join('');
+}
+
+async function toggleFollowBtn(uid, btn) {
+  if(!isLoggedIn){showToast('팔로우는 로그인 후 가능해요');return;}
+  if(followedUsers.has(uid)){
+    followedUsers.delete(uid);
+    btn.textContent = '팔로우';
+    await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', uid);
+  } else {
+    followedUsers.add(uid);
+    btn.textContent = '팔로잉';
+    await sb.from('follows').upsert({follower_id: currentUser.id, following_id: uid},{onConflict:'follower_id,following_id'});
+  }
 }
 
 function openTitleModal() {
@@ -1756,10 +1842,10 @@ function showProfileDirect(){
             <span class="profile-handle">${currentUser.handle}</span>
             ${titleBadge}
           </div>
-          <div class="profile-stats">
+          <div class="profile-stats" id="myProfileStats">
             <div class="profile-stat"><strong>${myPlls.length}</strong><span>플리</span></div>
-            <div class="profile-stat"><strong>0</strong><span>팔로워</span></div>
-            <div class="profile-stat"><strong>0</strong><span>팔로잉</span></div>
+            <div class="profile-stat" style="cursor:pointer" onclick="showFollowList('${currentUser.id}','followers')"><strong id="myFollowerCount">0</strong><span>팔로워</span></div>
+            <div class="profile-stat" style="cursor:pointer" onclick="showFollowList('${currentUser.id}','following')"><strong id="myFollowingCount">0</strong><span>팔로잉</span></div>
           </div>
           <div style="margin-bottom:14px;">
             <textarea id="profileBioInput" placeholder="소개를 입력해보세요..." style="background:transparent;border:none;border-bottom:1px solid var(--border);width:100%;max-width:360px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;padding:4px 0;line-height:1.6;" rows="2">${bio}</textarea>
@@ -1774,6 +1860,18 @@ function showProfileDirect(){
     </div>`;
   showPage('profile');
   renderMyProfileFeed();
+  // 팔로워/팔로잉 수 로드
+  if(currentUser) {
+    Promise.all([
+      sb.from('follows').select('follower_id').eq('following_id', currentUser.id),
+      sb.from('follows').select('following_id').eq('follower_id', currentUser.id)
+    ]).then(([{data:fd},{data:ing}]) => {
+      const fc = document.getElementById('myFollowerCount');
+      const ic = document.getElementById('myFollowingCount');
+      if(fc) fc.textContent = fd?.length || 0;
+      if(ic) ic.textContent = ing?.length || 0;
+    });
+  }
 }
 
 function renderMyProfileFeed(){
