@@ -1402,7 +1402,7 @@ function showProfile(uid) {
           ${isMe ? `
             <div style="margin-bottom:14px;">
               <textarea id="profileBioInput" placeholder="소개를 입력해보세요..." style="background:transparent;border:none;border-bottom:1px solid var(--border);width:100%;max-width:360px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;padding:4px 0;line-height:1.6;" rows="2">${bio}</textarea>
-              <button onclick="saveBio(${uid})" style="margin-top:4px;background:none;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:3px 12px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
+              <button onclick="saveBio()" style="margin-top:4px;background:none;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:3px 12px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
             </div>` : ''}
           <div class="profile-actions-row">
             ${!isMe ? `<button class="btn-green" style="padding:8px 24px;font-size:13px;" onclick="toggleFollowProfile(${uid},this)">${followedUsers.has(uid)?'✓ 팔로잉':'팔로우'}</button>` : ''}
@@ -1439,11 +1439,21 @@ async function handleAvatarChange(event) {
   if(!file || !currentUser) return;
   showToast('사진 업로드 중...');
 
-  // base64로 변환
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64 = e.target.result;
-    // Supabase Storage 없이 base64로 users 테이블에 저장
+  // canvas로 150x150 리사이즈해서 base64 용량 줄이기
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 150; canvas.height = 150;
+    const ctx = canvas.getContext('2d');
+    // 정사각형 크롭
+    const size = Math.min(img.width, img.height);
+    const sx = (img.width - size) / 2;
+    const sy = (img.height - size) / 2;
+    ctx.drawImage(img, sx, sy, size, size, 0, 0, 150, 150);
+    const base64 = canvas.toDataURL('image/jpeg', 0.7);
+    URL.revokeObjectURL(url);
+
     const {error} = await sb.from('users').update({ avatar_url: base64 }).eq('id', currentUser.id);
     if(error){ showToast('업로드 실패 😢'); console.error(error); return; }
     currentUser.image = base64;
@@ -1451,14 +1461,14 @@ async function handleAvatarChange(event) {
     updateNavForLogin();
     showMyProfile();
   };
-  reader.readAsDataURL(file);
+  img.src = url;
 }
 
-async function saveBio(uid) {
+async function saveBio() {
   const input = document.getElementById('profileBioInput');
-  if(!input) return;
+  if(!input || !currentUser) return;
   const bio = input.value.trim();
-  userBios[uid] = bio;
+  userBios[currentUser.id] = bio;
   const {error} = await sbSaveBio(bio);
   if(error) { showToast('저장 실패: ' + error.message); console.error(error); return; }
   showToast('소개가 저장됐어요 ✨');
@@ -1564,11 +1574,12 @@ async function sbUpsertUser(){
 
 async function sbLoadMyProfile(){
   if(!currentUser) return;
-  const {data} = await sb.from('users').select('title,bio,avatar_url').eq('id', currentUser.id).single();
+  const {data, error} = await sb.from('users').select('title,bio,avatar_url').eq('id', currentUser.id).single();
+  console.log('sbLoadMyProfile:', data, error);
   if(data){
     if(data.title) userTitles[currentUser.id] = data.title;
     if(data.bio) userBios[currentUser.id] = data.bio;
-    if(data.avatar_url) currentUser.image = data.avatar_url;
+    if(data.avatar_url) { currentUser.image = data.avatar_url; updateNavForLogin(); }
   }
 }
 
@@ -1752,7 +1763,7 @@ function showProfileDirect(){
           </div>
           <div style="margin-bottom:14px;">
             <textarea id="profileBioInput" placeholder="소개를 입력해보세요..." style="background:transparent;border:none;border-bottom:1px solid var(--border);width:100%;max-width:360px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;padding:4px 0;line-height:1.6;" rows="2">${bio}</textarea>
-            <button onclick="saveBio('${currentUser.id}')" style="margin-top:4px;background:none;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:3px 12px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
+            <button onclick="saveBio()" style="margin-top:4px;background:none;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:3px 12px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
           </div>
         </div>
       </div>
