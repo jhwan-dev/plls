@@ -1646,9 +1646,84 @@ async function submitUpload(){
 
 function updateNavForLogin(){
   const avatar=currentUser.image
-    ?`<img src="${currentUser.image}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--green);cursor:pointer;" onclick="showToast('${currentUser.name}님으로 로그인됨')">`
-    :`<div style="width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--black);cursor:pointer;" onclick="showToast('${currentUser.name}님으로 로그인됨')">${(currentUser.name||'?')[0].toUpperCase()}</div>`;
+    ?`<img src="${currentUser.image}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--green);cursor:pointer;" onclick="showMyProfile()" title="내 프로필">`
+    :`<div style="width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--black);cursor:pointer;" onclick="showMyProfile()" title="내 프로필">${(currentUser.name||'?')[0].toUpperCase()}</div>`;
   document.getElementById('navRight').innerHTML=`<button class="btn-green" onclick="openUploadModal()">+ 공유하기</button>${avatar}<button class="btn-login" onclick="handleLogout()" style="font-size:11px;padding:6px 14px;">로그아웃</button>`;
+}
+
+function showMyProfile(){
+  // 내 플레이리스트를 DB에서 찾아서 uid 매칭
+  const myPll = playlists.find(p => p.fromDB && p.userId === currentUser.id);
+  if(myPll) {
+    showProfile(myPll.uid || currentUser.id);
+  } else {
+    // profileData에서 handle로 찾기
+    const uid = Object.keys(profileData).find(k => profileData[k].name === currentUser.handle?.replace('@',''));
+    if(uid) showProfile(parseInt(uid));
+    else showProfileDirect();
+  }
+}
+
+function showProfileDirect(){
+  // DB 플레이리스트 없어도 내 프로필 보여주기
+  currentProfileUid = currentUser.id;
+  const myPlls = playlists.filter(p => p.fromDB && p.userId === currentUser.id);
+  const title = getProfileTitle(currentUser.id);
+  const bio = userBios[currentUser.id] || '';
+  const isMyAccount = currentUser.spotifyId === MY_SPOTIFY_ID;
+
+  const avatarHtml = currentUser.image
+    ? `<img class="profile-avatar-img" src="${currentUser.image}" onerror="this.style.display='none'">`
+    : `<div class="profile-avatar-emoji"><span>🎵</span></div>`;
+
+  const titleBadge = title
+    ? `<span class="profile-title-badge" onclick="${isMyAccount?'openTitleModal()':''}">✦ ${title}</span>`
+    : (isMyAccount ? `<span class="profile-title-badge" onclick="openTitleModal()">+ 칭호 선택</span>` : '');
+
+  document.getElementById('profileContent').innerHTML = `
+    <div class="profile-page">
+      <button onclick="showPage('home')" style="background:none;border:none;color:var(--gray);font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-bottom:28px;display:flex;align-items:center;gap:6px;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">← 뒤로</button>
+      <div class="profile-top">
+        <div class="profile-avatar-wrap">
+          ${avatarHtml}
+          <div class="profile-avatar-edit" onclick="showToast('프로필 사진 변경은 준비 중이에요')">✏️</div>
+        </div>
+        <div class="profile-right">
+          <div class="profile-name-row">
+            <span class="profile-handle">${currentUser.handle}</span>
+            ${titleBadge}
+          </div>
+          <div class="profile-stats">
+            <div class="profile-stat"><strong>${myPlls.length}</strong><span>플리</span></div>
+            <div class="profile-stat"><strong>0</strong><span>팔로워</span></div>
+            <div class="profile-stat"><strong>0</strong><span>팔로잉</span></div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <textarea id="profileBioInput" placeholder="소개를 입력해보세요..." style="background:transparent;border:none;border-bottom:1px solid var(--border);width:100%;max-width:360px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:none;outline:none;padding:4px 0;line-height:1.6;" rows="2">${bio}</textarea>
+            <button onclick="saveBio('${currentUser.id}')" style="margin-top:4px;background:none;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:3px 12px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-bottom:3px;"></div>
+      <div class="profile-feed">
+        ${myPlls.length === 0
+          ? `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-dim);font-size:14px;">아직 공유한 플레이리스트가 없어요</div>`
+          : myPlls.map(pl => {
+              const thumb = pl.coverImg
+                ? `<img src="${pl.coverImg}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
+                : `<div class="profile-feed-item-emoji"><span style="font-size:48px">${pl.emoji||'🎵'}</span></div>`;
+              return `<div class="profile-feed-item" onclick="showPlaylistDetail('${pl.id}')">
+                ${thumb}
+                <div class="profile-feed-overlay">
+                  <div class="profile-feed-stat">❤️ ${pl.likes}</div>
+                  <div class="profile-feed-stat">💬 ${pl.comments||0}</div>
+                </div>
+              </div>`;
+            }).join('')
+        }
+      </div>
+    </div>`;
+  showPage('profile');
 }
 
 async function handleLogout(){
