@@ -1434,12 +1434,33 @@ function showProfile(uid) {
   showPage('profile');
 }
 
+async function handleAvatarChange(event) {
+  const file = event.target.files[0];
+  if(!file || !currentUser) return;
+  showToast('사진 업로드 중...');
+
+  // base64로 변환
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    // Supabase Storage 없이 base64로 users 테이블에 저장
+    const {error} = await sb.from('users').update({ avatar_url: base64 }).eq('id', currentUser.id);
+    if(error){ showToast('업로드 실패 😢'); console.error(error); return; }
+    currentUser.image = base64;
+    showToast('프로필 사진이 변경됐어요 ✨');
+    updateNavForLogin();
+    showMyProfile();
+  };
+  reader.readAsDataURL(file);
+}
+
 async function saveBio(uid) {
   const input = document.getElementById('profileBioInput');
   if(!input) return;
   const bio = input.value.trim();
   userBios[uid] = bio;
-  await sbSaveBio(bio);
+  const {error} = await sbSaveBio(bio);
+  if(error) { showToast('저장 실패: ' + error.message); console.error(error); return; }
   showToast('소개가 저장됐어요 ✨');
   showMyProfile();
 }
@@ -1557,8 +1578,8 @@ async function sbSaveTitle(title){
 }
 
 async function sbSaveBio(bio){
-  if(!currentUser) return;
-  await sb.from('users').update({ bio }).eq('id', currentUser.id);
+  if(!currentUser) return {error: {message: 'no user'}};
+  return await sb.from('users').update({ bio }).eq('id', currentUser.id);
 }
 
 async function sbLoadFeed(){
@@ -1713,7 +1734,8 @@ function showProfileDirect(){
       <div class="profile-top">
         <div class="profile-avatar-wrap">
           ${avatarHtml}
-          <div class="profile-avatar-edit" onclick="showToast('프로필 사진 변경은 준비 중이에요')">✏️</div>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)">
+          <div class="profile-avatar-edit" onclick="document.getElementById('avatarFileInput').click()">✏️</div>
         </div>
         <div class="profile-right">
           <div class="profile-name-row">
