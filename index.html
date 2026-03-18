@@ -1156,10 +1156,10 @@ async function toggleLike(id, btnEl) {
   svg.setAttribute('fill', isNowLiked ? 'currentColor' : 'none');
   btnEl.classList.toggle('liked', isNowLiked);
 
-  // 현재 표시된 숫자 기준으로 +1/-1
+  // p.likes(DB 기준)에서 +1/-1
   const countEl = btnEl.querySelector('.like-count');
-  const current = parseInt(countEl?.textContent || 0);
-  const newCount = isNowLiked ? current + 1 : current - 1;
+  const baseCount = p.likes || 0;
+  const newCount = isNowLiked ? baseCount + 1 : Math.max(0, baseCount - 1);
   if(countEl) countEl.textContent = newCount;
   p.likes = newCount;
 
@@ -1440,7 +1440,7 @@ async function showProfile(elOrUid) {
               <button onclick="saveBio()" style="margin-top:4px;background:none;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:3px 12px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;">저장</button>
             </div>` : ''}
           <div class="profile-actions-row">
-            ${!isMe ? `<button class="btn-green" style="padding:8px 24px;font-size:13px;" onclick="toggleFollowProfile(${uid},this)">${followedUsers.has(uid)?'✓ 팔로잉':'팔로우'}</button>` : ''}
+            ${!isMe ? `<button class="btn-green" style="padding:8px 24px;font-size:13px;" onclick="toggleFollowProfile(this)" data-uid="${uid}">${followedUsers.has(uid)?'✓ 팔로잉':'팔로우'}</button>` : ''}
           </div>
         </div>
       </div>
@@ -1589,10 +1589,21 @@ async function selectTitle(title) {
   showToast(`✦ ${title} 칭호를 달았어요!`);
 }
 
-function toggleFollowProfile(uid,btn) {
+async function toggleFollowProfile(btn) {
+  const uid = btn.dataset.uid;
   if(!isLoggedIn){showToast('팔로우는 로그인 후 가능해요');return;}
-  if(followedUsers.has(uid)){followedUsers.delete(uid);btn.textContent='+ 팔로우';showToast('팔로우를 취소했어요');}
-  else{followedUsers.add(uid);btn.textContent='✓ 팔로잉';showToast('✓ 팔로우했어요!');}
+  if(followedUsers.has(uid)){
+    followedUsers.delete(uid);
+    btn.textContent='팔로우';
+    btn.classList.remove('following');
+    await sb.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',uid);
+    showToast('팔로우를 취소했어요');
+  } else {
+    followedUsers.add(uid);
+    btn.textContent='✓ 팔로잉';
+    await sb.from('follows').upsert({follower_id:currentUser.id,following_id:uid},{onConflict:'follower_id,following_id'});
+    showToast('✓ 팔로우했어요!');
+  }
   renderUploaders();
 }
 
@@ -1642,6 +1653,7 @@ async function initLoggedInUser(token, supabaseUserId){
     // Supabase 유저 upsert + 내 좋아요/팔로우 로드
     await sbUpsertUser();
     await sbLoadMyProfile();
+    await sbLoadFeed(); // 로그인 시 좋아요 count 최신화
     await sbLoadMyLikes();
     await sbLoadMyFollows();
   }catch(e){showToast('프로필을 불러오지 못했어요.');console.error(e);}
