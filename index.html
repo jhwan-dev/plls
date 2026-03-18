@@ -1386,7 +1386,7 @@ function showProfile(uid) {
       <div class="profile-top">
         <div class="profile-avatar-wrap">
           ${avatarHtml}
-          ${isMe ? `<div class="profile-avatar-edit" onclick="showToast('프로필 사진 변경은 준비 중이에요')">✏️</div>` : ''}
+          ${isMe ? `<input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)"><div class="profile-avatar-edit" onclick="document.getElementById('avatarFileInput').click()">✏️</div>` : ''}
         </div>
         <div class="profile-right">
           <div class="profile-name-row">
@@ -1579,7 +1579,10 @@ async function sbSaveTitle(title){
 
 async function sbSaveBio(bio){
   if(!currentUser) return {error: {message: 'no user'}};
-  return await sb.from('users').update({ bio }).eq('id', currentUser.id);
+  console.log('saving bio for user:', currentUser.id, bio);
+  const result = await sb.from('users').update({ bio }).eq('id', currentUser.id);
+  console.log('bio save result:', result);
+  return result;
 }
 
 async function sbLoadFeed(){
