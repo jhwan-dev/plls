@@ -1434,12 +1434,14 @@ function showProfile(uid) {
   showPage('profile');
 }
 
-function saveBio(uid) {
+async function saveBio(uid) {
   const input = document.getElementById('profileBioInput');
   if(!input) return;
-  userBios[uid] = input.value.trim();
+  const bio = input.value.trim();
+  userBios[uid] = bio;
+  await sbSaveBio(bio);
   showToast('소개가 저장됐어요 ✨');
-  showProfile(uid);
+  showMyProfile();
 }
 
 function openTitleModal() {
@@ -1458,12 +1460,13 @@ function closeTitleModal() {
   document.getElementById('titleModal').classList.remove('open');
 }
 
-function selectTitle(title) {
+async function selectTitle(title) {
   if(currentProfileUid !== null) {
     userTitles[currentProfileUid] = title;
   }
+  await sbSaveTitle(title);
   closeTitleModal();
-  showProfile(currentProfileUid);
+  showMyProfile();
   showToast(`✦ ${title} 칭호를 달았어요!`);
 }
 
@@ -1519,6 +1522,7 @@ async function initLoggedInUser(token, supabaseUserId){
     else window._pendingPlayerToken = token;
     // Supabase 유저 upsert + 내 좋아요/팔로우 로드
     await sbUpsertUser();
+    await sbLoadMyProfile();
     await sbLoadMyLikes();
     await sbLoadMyFollows();
   }catch(e){showToast('프로필을 불러오지 못했어요.');console.error(e);}
@@ -1533,7 +1537,28 @@ async function sbUpsertUser(){
     handle: currentUser.handle,
     name: currentUser.name,
     image: currentUser.image,
+    avatar_url: currentUser.image,
   }, {onConflict:'id'});
+}
+
+async function sbLoadMyProfile(){
+  if(!currentUser) return;
+  const {data} = await sb.from('users').select('title,bio,avatar_url').eq('id', currentUser.id).single();
+  if(data){
+    if(data.title) userTitles[currentUser.id] = data.title;
+    if(data.bio) userBios[currentUser.id] = data.bio;
+    if(data.avatar_url) currentUser.image = data.avatar_url;
+  }
+}
+
+async function sbSaveTitle(title){
+  if(!currentUser) return;
+  await sb.from('users').update({ title }).eq('id', currentUser.id);
+}
+
+async function sbSaveBio(bio){
+  if(!currentUser) return;
+  await sb.from('users').update({ bio }).eq('id', currentUser.id);
 }
 
 async function sbLoadFeed(){
@@ -1559,11 +1584,13 @@ async function sbLoadFeed(){
     spotifyUrl: p.spotify_url,
     desc: p.description,
     fromDB: true,
+    userId: p.user_id,
   }));
 
   // DB 카드를 샘플 앞에 붙이기
   playlists = [...dbCards, ...samplePlaylists];
   renderPlaylists();
+  renderMyProfileFeed();
 }
 
 async function sbLoadMyLikes(){
@@ -1705,25 +1732,34 @@ function showProfileDirect(){
         </div>
       </div>
       <div style="border-top:1px solid var(--border);margin-bottom:3px;"></div>
-      <div class="profile-feed">
-        ${myPlls.length === 0
-          ? `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-dim);font-size:14px;">아직 공유한 플레이리스트가 없어요</div>`
-          : myPlls.map(pl => {
-              const thumb = pl.coverImg
-                ? `<img src="${pl.coverImg}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
-                : `<div class="profile-feed-item-emoji"><span style="font-size:48px">${pl.emoji||'🎵'}</span></div>`;
-              return `<div class="profile-feed-item" onclick="showPlaylistDetail('${pl.id}')">
-                ${thumb}
-                <div class="profile-feed-overlay">
-                  <div class="profile-feed-stat">❤️ ${pl.likes}</div>
-                  <div class="profile-feed-stat">💬 ${pl.comments||0}</div>
-                </div>
-              </div>`;
-            }).join('')
-        }
+      <div class="profile-feed" id="myProfileFeed">
+        <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-dim);font-size:14px;">🎵 불러오는 중...</div>
       </div>
     </div>`;
   showPage('profile');
+  renderMyProfileFeed();
+}
+
+function renderMyProfileFeed(){
+  const feed = document.getElementById('myProfileFeed');
+  if(!feed) return;
+  const myPlls = playlists.filter(p => p.fromDB && p.userId === currentUser?.id);
+  if(myPlls.length === 0){
+    feed.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-dim);font-size:14px;">아직 공유한 플레이리스트가 없어요</div>`;
+    return;
+  }
+  feed.innerHTML = myPlls.map(pl => {
+    const thumb = pl.coverImg
+      ? `<img src="${pl.coverImg}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
+      : `<div class="profile-feed-item-emoji"><span style="font-size:48px">${pl.emoji||'🎵'}</span></div>`;
+    return `<div class="profile-feed-item" onclick="showPlaylistDetail('${pl.id}')">
+      ${thumb}
+      <div class="profile-feed-overlay">
+        <div class="profile-feed-stat">❤️ ${pl.likes}</div>
+        <div class="profile-feed-stat">💬 ${pl.comments||0}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function handleLogout(){
