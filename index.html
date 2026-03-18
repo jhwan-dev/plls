@@ -1467,8 +1467,6 @@ function selectTitle(title) {
   showToast(`✦ ${title} 칭호를 달았어요!`);
 }
 
-function toggleFollowProfile(uid, btn) {
-
 function toggleFollowProfile(uid,btn) {
   if(!isLoggedIn){showToast('팔로우는 로그인 후 가능해요');return;}
   if(followedUsers.has(uid)){followedUsers.delete(uid);btn.textContent='+ 팔로우';showToast('팔로우를 취소했어요');}
