@@ -587,17 +587,7 @@
   .track-duration { font-size: 13px; color: var(--gray-dim); text-align: right; }
   .track-loading { text-align: center; padding: 60px; color: var(--gray-dim); font-size: 14px; }
 
-  @media(max-width:768px){
-    .pd-hero { flex-direction: column; padding: 90px 20px 30px; gap: 20px; }
-    .pd-info { flex-direction: column !important; }
-    #pdDescSection { width: 100% !important; padding-top: 0 !important; }
-    .pd-cover, .pd-cover-emoji { width: 140px; height: 140px; }
-    .track-list { padding: 0 20px 60px; }
-    .track-list-header { grid-template-columns: 32px 1fr 50px; }
-    .track-list-header .th-album { display: none; }
-    .track-item { grid-template-columns: 32px 1fr 50px; }
-    .track-album { display: none; }
-  }
+
 
   .toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%); background:var(--dark3); border:1px solid var(--green); border-radius:24px; padding:12px 24px; font-size:13px; font-weight:600; color:var(--white); z-index:9999; white-space:nowrap; opacity:0; visibility:hidden; transition:opacity 0.3s ease, visibility 0.3s ease; pointer-events:none; }
   .toast.show { opacity:1; visibility:visible; }
@@ -769,12 +759,6 @@
   }
   .mp-close:hover { color: var(--white); }
 
-  @media(max-width:768px){
-    #miniPlayer { grid-template-columns: 1fr auto; padding: 0 12px; }
-    .mp-center { max-width: none; width: auto; }
-    .mp-progress { display: none; }
-    .mp-right { display: none; }
-  }
 
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
   .fade-in { animation:fadeUp 0.5s ease both; }
@@ -787,15 +771,126 @@
   .grad-6{background:linear-gradient(135deg,#3a1a1a,#200d0d);}
 
   @media(max-width:768px){
-    nav{padding:0 20px;} .nav-links{display:none;}
-    .section{padding:60px 20px;} .divider{margin:0 20px;}
-    .playlists-grid{grid-template-columns:repeat(2,1fr);gap:14px;}
-    .celeb-grid{grid-template-columns:1fr;}
-    .hero-title{font-size:72px;}
-    .profile-header{padding:100px 20px 30px;}
-    .profile-top{flex-direction:column;align-items:flex-start;}
-    .modal{margin:16px;padding:28px;}
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+
+  .section { padding: 60px 20px; }
+  .divider { margin: 0 20px; }
+  .playlists-grid { grid-template-columns: repeat(2,1fr); gap: 14px; }
+  .celeb-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: 72px; }
+
+  /* 플레이리스트 상세 */
+  .pd-hero {
+    flex-direction: column;
+    padding: 90px 20px 30px;
+    gap: 20px;
   }
+  .pd-hero > div {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  #pdDescSection {
+    width: 100% !important;
+    padding: 20px 0 0 0 !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border) !important;
+    min-height: unset !important;
+  }
+  .pd-cover, .pd-cover-emoji { width: 140px; height: 140px; }
+  .pd-title { font-size: 28px !important; }
+  .pd-actions { flex-wrap: wrap; gap: 8px; }
+
+  .track-list { padding: 0 20px 60px; }
+  .track-list-header { grid-template-columns: 32px 1fr 50px; }
+  .track-list-header .th-album { display: none; }
+  .track-item { grid-template-columns: 32px 1fr 50px; }
+  .track-album { display: none; }
+
+  /* 미니플레이어 */
+  #miniPlayer { padding: 0 12px; gap: 8px; }
+  .mp-center {
+    position: static;
+    transform: none;
+    width: auto;
+    flex: 1;
+    max-width: none;
+  }
+  .mp-progress { display: none; }
+  .mp-right { display: none; }
+  .mp-left { flex: none; max-width: 45%; }
+  .mp-track { max-width: 120px; }
+  .mp-artist { max-width: 120px; }
+
+  /* 프로필 */
+  .profile-page { padding: 80px 16px 80px; }
+  .profile-top { flex-direction: column; gap: 20px; }
+  .profile-stats { gap: 20px; }
+  .profile-feed { grid-template-columns: repeat(3,1fr); }
+  .profile-actions-row { flex-wrap: wrap; }
+
+  /* 모달 */
+  .modal { margin: 16px; padding: 28px; }
+
+  /* 업로더 */
+  .uploaders-row { gap: 14px; }
+  .uploader-card { flex: 0 0 130px; }
+}
+/* ===== 검색 ===== */
+.search-result-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px; border-radius: 10px;
+  cursor: pointer; transition: background 0.15s;
+}
+.search-result-item:hover { background: var(--dark2); }
+.search-result-cover {
+  width: 48px; height: 48px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.search-result-name { font-size: 14px; font-weight: 600; color: var(--white); }
+.search-result-sub { font-size: 12px; color: var(--gray); margin-top: 2px; }
+.search-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gray-dim);
+  padding: 16px 16px 8px;
+}
+
+/* ===== 알림 ===== */
+.noti-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s;
+}
+.noti-item:hover { background: var(--dark3); }
+.noti-item.unread { background: rgba(29,185,84,0.05); }
+.noti-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--dark3); display: flex; align-items: center;
+  justify-content: center; font-size: 16px; flex-shrink: 0;
+}
+.noti-text { font-size: 13px; color: var(--white); line-height: 1.5; flex: 1; }
+.noti-text span { color: var(--green); font-weight: 600; }
+.noti-time { font-size: 11px; color: var(--gray-dim); margin-top: 4px; }
+.noti-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0; margin-top: 6px;
+}
+
+/* 알림 버튼 뱃지 */
+.noti-btn {
+  position: relative; background: none; border: none;
+  color: var(--gray); font-size: 20px; cursor: pointer;
+  transition: color 0.2s; padding: 4px;
+}
+.noti-btn:hover { color: var(--white); }
+.noti-badge {
+  position: absolute; top: -2px; right: -2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--green); color: var(--black);
+  font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
 </style>
 </head>
 <body>
@@ -807,11 +902,35 @@
     <a class="nav-link" onclick="scrollToSection('today-playlists')">오늘의 플레이리스트</a>
     <a class="nav-link" onclick="scrollToSection('today-uploaders')">오늘의 업로더</a>
     <a class="nav-link" onclick="scrollToSection('celeb-plls')">Celeb's Plls</a>
+    <a class="nav-link" onclick="openSearch()">🔍 검색</a>
   </div>
   <div class="nav-right" id="navRight">
     <button class="btn-login" onclick="showPage('login')">로그인</button>
   </div>
 </nav>
+<!-- 검색 오버레이 -->
+<div id="searchOverlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);">
+  <div style="max-width:640px;margin:80px auto 0;padding:0 20px;">
+    <div style="position:relative;margin-bottom:24px;">
+      <input id="searchInput" class="form-input" placeholder="플레이리스트, 업로더, 곡 이름 검색..."
+        style="padding-left:44px;font-size:16px;height:52px;border-radius:30px;"
+        oninput="handleSearch(this.value)"
+        onkeydown="if(event.key==='Escape')closeSearch()">
+      <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:18px;">🔍</span>
+      <button onclick="closeSearch()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray);font-size:22px;cursor:pointer;">×</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<!-- 알림 패널 -->
+<div id="notiPanel" style="display:none;position:fixed;top:64px;right:20px;z-index:300;width:360px;max-height:480px;overflow-y:auto;background:var(--dark2);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-weight:700;font-size:15px;">알림</span>
+    <button onclick="markAllRead()" style="background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;">모두 읽음</button>
+  </div>
+  <div id="notiList"></div>
+</div>
 
 <!-- HOME -->
 <div id="page-home" class="page active">
@@ -1144,36 +1263,53 @@ function renderCelebs() {
 
 async function toggleLike(id, btnEl) {
   if(!isLoggedIn){showToast('❤️ 좋아요는 로그인 후 가능해요');return;}
-  const wasLiked = likedPlaylists.has(id);
-  wasLiked ? likedPlaylists.delete(id) : likedPlaylists.add(id);
-
+  
   const p = playlists.find(pl=>pl.id==id);
   if(!p||!btnEl) return;
 
+  const wasLiked = likedPlaylists.has(id);
+  wasLiked ? likedPlaylists.delete(id) : likedPlaylists.add(id);
   const isNowLiked = likedPlaylists.has(id);
 
+  // UI 즉시 반영
   const svg = btnEl.querySelector('svg');
   svg.setAttribute('fill', isNowLiked ? 'currentColor' : 'none');
   btnEl.classList.toggle('liked', isNowLiked);
 
-  // p.likes(DB 기준)에서 +1/-1
   const countEl = btnEl.querySelector('.like-count');
-  const baseCount = p.likes || 0;
-  const newCount = isNowLiked ? baseCount + 1 : Math.max(0, baseCount - 1);
+  const currentCount = parseInt(countEl?.textContent || p.likes || 0);
+  const newCount = isNowLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
   if(countEl) countEl.textContent = newCount;
-  p.likes = newCount;
+  p.likes = isNowLiked ? (p.likes + 1) : Math.max(0, p.likes - 1);
 
+  // 애니메이션
   btnEl.classList.remove('like-pop');
   void btnEl.offsetWidth;
   btnEl.classList.add('like-pop');
   btnEl.addEventListener('animationend', ()=>btnEl.classList.remove('like-pop'), {once:true});
 
-  // DB 반영
+  // DB 반영 (DB 플리만)
   if(p.fromDB && p.dbId){
     if(isNowLiked){
-      await sb.from('likes').upsert({user_id:currentUser.id, playlist_id:p.dbId},{onConflict:'user_id,playlist_id'});
+      await sb.from('likes').upsert(
+        {user_id:currentUser.id, playlist_id:p.dbId},
+        {onConflict:'user_id,playlist_id'}
+      );
+      
     } else {
-      await sb.from('likes').delete().eq('user_id',currentUser.id).eq('playlist_id',p.dbId);
+      await sb.from('likes').delete()
+        .eq('user_id',currentUser.id)
+        .eq('playlist_id',p.dbId);
+    }
+    // DB에서 count 가져오는 코드 바로 위에
+    if(isNowLiked) await createNotification(p.userId, 'like', p.dbId, p.name);
+    // DB에서 정확한 count 다시 가져오기
+    const {count} = await sb.from('likes')
+      .select('*', {count:'exact', head:true})
+      .eq('playlist_id', p.dbId);
+    if(count !== null) {
+      p.likes = count;
+      if(countEl) countEl.textContent = count;
     }
   }
 }
@@ -1233,6 +1369,7 @@ async function submitComment() {
       handle: currentUser.handle,
       text: text,
     });
+    await createNotification(p.userId, 'comment', p.dbId, p.name);
   } else {
     if(!extraComments[currentCommentPlaylistId])extraComments[currentCommentPlaylistId]=[];
     extraComments[currentCommentPlaylistId].push({user:currentUser?.handle||'@me',emoji:'🎵',text,time:'방금'});
@@ -1649,6 +1786,7 @@ async function toggleFollowProfile(btn) {
     followedUsers.add(uid);
     btn.textContent='✓ 팔로잉';
     await sb.from('follows').upsert({follower_id:currentUser.id,following_id:uid},{onConflict:'follower_id,following_id'});
+    await createNotification(uid, 'follow');
     showToast('✓ 팔로우했어요!');
   }
   renderUploaders();
@@ -1703,6 +1841,7 @@ async function initLoggedInUser(token, supabaseUserId){
     await sbLoadFeed(); // 로그인 시 좋아요 count 최신화
     await sbLoadMyLikes();
     await sbLoadMyFollows();
+    subscribeNotifications();
   }catch(e){showToast('프로필을 불러오지 못했어요.');console.error(e);}
 }
 
@@ -1856,7 +1995,7 @@ function updateNavForLogin(){
   const avatar=currentUser.image
     ?`<img src="${currentUser.image}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--green);cursor:pointer;" onclick="showMyProfile()" title="내 프로필">`
     :`<div style="width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--black);cursor:pointer;" onclick="showMyProfile()" title="내 프로필">${(currentUser.name||'?')[0].toUpperCase()}</div>`;
-  document.getElementById('navRight').innerHTML=`<button class="btn-green" onclick="openUploadModal()">+ 공유하기</button>${avatar}<button class="btn-login" onclick="handleLogout()" style="font-size:11px;padding:6px 14px;">로그아웃</button>`;
+      document.getElementById('navRight').innerHTML=`<button class="btn-green" onclick="openUploadModal()">+ 공유하기</button><button id="notiBtn" class="noti-btn" onclick="openNotiPanel()">🔔<span id="notiBadge" class="noti-badge" style="display:none">0</span></button>${avatar}<button class="btn-login" onclick="handleLogout()" style="font-size:11px;padding:6px 14px;">로그아웃</button>`;
 }
 
 function showMyProfile(){
@@ -1879,7 +2018,7 @@ function showProfileDirect(){
   const title = getProfileTitle(currentUser.id);
   const bio = userBios[currentUser.id] || '';
   const isMyAccount = currentUser.spotifyId === MY_SPOTIFY_ID;
-
+  const isOwnProfile = true;
   const avatarHtml = currentUser.image
     ? `<img class="profile-avatar-img" src="${currentUser.image}" onerror="this.style.display='none'">`
     : `<div class="profile-avatar-emoji"><span>🎵</span></div>`;
@@ -2164,6 +2303,230 @@ function openSpotify(url) {
   showToast('Spotify로 이동합니다...');
   setTimeout(()=>window.open(url,'_blank'), 500);
 }
+// ===== 검색 =====
+function openSearch() {
+  document.getElementById('searchOverlay').style.display = 'block';
+  setTimeout(() => document.getElementById('searchInput').focus(), 100);
+}
+
+function closeSearch() {
+  document.getElementById('searchOverlay').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+}
+
+async function handleSearch(query) {
+  const q = query.trim();
+  const resultsEl = document.getElementById('searchResults');
+
+  if(!q) { resultsEl.innerHTML = ''; return; }
+
+  // 플레이리스트 검색 (로컬 + DB)
+  const playlistResults = playlists.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    p.uploader.toLowerCase().includes(q.toLowerCase())
+  ).slice(0, 5);
+
+  // DB에서 추가 검색
+  const { data: dbResults } = await sb.from('playlists')
+    .select('*')
+    .or(`name.ilike.%${q}%,handle.ilike.%${q}%`)
+    .limit(5);
+
+  // 유저 검색
+  const { data: userResults } = await sb.from('users')
+    .select('id, handle, name, avatar_url, title')
+    .or(`handle.ilike.%${q}%,name.ilike.%${q}%`)
+    .limit(5);
+
+  let html = '';
+
+  // 플레이리스트 결과
+  const allPlaylists = [
+    ...playlistResults,
+    ...(dbResults || []).map(p => ({
+      id: 'db_' + p.id, dbId: p.id,
+      name: p.name, uploader: p.handle,
+      coverImg: p.cover_img, emoji: '🎵', grad: 'grad-1',
+      spotifyUrl: p.spotify_url,
+    }))
+  ].filter((p, i, arr) => arr.findIndex(x => x.name === p.name) === i);
+
+  if(allPlaylists.length > 0) {
+    html += `<div class="search-section-title">플레이리스트</div>`;
+    html += allPlaylists.map(p => `
+      <div class="search-result-item" onclick="closeSearch();showPlaylistDetail('${p.id}')">
+        <div class="search-result-cover ${p.coverImg ? '' : p.grad}" style="${p.coverImg ? 'background:var(--dark3)' : ''}">
+          ${p.coverImg
+            ? `<img src="${p.coverImg}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`
+            : p.emoji}
+        </div>
+        <div>
+          <div class="search-result-name">${p.name}</div>
+          <div class="search-result-sub">${p.uploader}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // 유저 결과
+  if(userResults && userResults.length > 0) {
+    html += `<div class="search-section-title">업로더</div>`;
+    html += userResults.map(u => `
+      <div class="search-result-item" onclick="closeSearch();showProfile('${u.id}')">
+        <div class="search-result-cover" style="border-radius:50%;background:var(--dark3);">
+          ${u.avatar_url
+            ? `<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+            : '🎵'}
+        </div>
+        <div>
+          <div class="search-result-name">${u.handle || u.name}</div>
+          ${u.title ? `<div class="search-result-sub">✦ ${u.title}</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  if(!html) {
+    html = `<div style="text-align:center;padding:48px;color:var(--gray-dim);font-size:14px;">검색 결과가 없어요 🔍</div>`;
+  }
+
+  resultsEl.innerHTML = html;
+}
+
+// ===== 알림 =====
+let notifications = [];
+let unreadCount = 0;
+
+function openNotiPanel() {
+  const panel = document.getElementById('notiPanel');
+  if(panel.style.display === 'none') {
+    panel.style.display = 'block';
+    loadNotifications();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+async function loadNotifications() {
+  if(!isLoggedIn || !currentUser) return;
+
+  const { data } = await sb.from('notifications')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  notifications = data || [];
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notiList');
+  if(!list) return;
+
+  if(notifications.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--gray-dim);font-size:14px;">아직 알림이 없어요</div>`;
+    return;
+  }
+
+  list.innerHTML = notifications.map(n => {
+    const typeText = n.type === 'like' ? '님이 회원님의 플레이리스트를 좋아해요 ❤️'
+      : n.type === 'comment' ? '님이 댓글을 달았어요 💬'
+      : '님이 팔로우하기 시작했어요 🎵';
+
+    const playlistText = n.playlist_name ? `<br><span style="color:var(--gray);font-weight:400;">${n.playlist_name}</span>` : '';
+
+    return `
+      <div class="noti-item ${n.is_read ? '' : 'unread'}" onclick="handleNotiClick('${n.id}', '${n.type}', '${n.from_user_id}', ${n.playlist_id || null})">
+        <div class="noti-avatar">🎵</div>
+        <div style="flex:1;">
+          <div class="noti-text"><span>${n.from_handle}</span>${typeText}${playlistText}</div>
+          <div class="noti-time">${timeAgo(n.created_at)}</div>
+        </div>
+        ${!n.is_read ? '<div class="noti-dot"></div>' : ''}
+      </div>`;
+  }).join('');
+}
+
+async function handleNotiClick(notiId, type, fromUid, playlistId) {
+  // 읽음 처리
+  await sb.from('notifications').update({ is_read: true }).eq('id', notiId);
+  
+  document.getElementById('notiPanel').style.display = 'none';
+
+  if(type === 'follow') {
+    showProfile(fromUid);
+  } else if(playlistId) {
+    showPlaylistDetail('db_' + playlistId);
+  }
+
+  updateNotiBadge();
+}
+
+async function markAllRead() {
+  if(!currentUser) return;
+  await sb.from('notifications').update({ is_read: true }).eq('user_id', currentUser.id);
+  notifications.forEach(n => n.is_read = true);
+  renderNotifications();
+  updateNotiBadge();
+}
+
+function updateNotiBadge() {
+  unreadCount = notifications.filter(n => !n.is_read).length;
+  const badge = document.getElementById('notiBadge');
+  if(badge) {
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+  }
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if(m < 1) return '방금';
+  if(m < 60) return `${m}분 전`;
+  const h = Math.floor(m / 60);
+  if(h < 24) return `${h}시간 전`;
+  return `${Math.floor(h / 24)}일 전`;
+}
+
+// 알림 생성 함수
+async function createNotification(toUserId, type, playlistId = null, playlistName = null) {
+  if(!currentUser || toUserId === currentUser.id) return; // 본인한테는 알림 안 보냄
+  await sb.from('notifications').insert({
+    user_id: toUserId,
+    from_user_id: currentUser.id,
+    from_handle: currentUser.handle,
+    type,
+    playlist_id: playlistId,
+    playlist_name: playlistName,
+  });
+}
+
+// 알림 실시간 구독
+function subscribeNotifications() {
+  if(!currentUser) return;
+  sb.channel('notifications')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${currentUser.id}`
+    }, payload => {
+      notifications.unshift(payload.new);
+      updateNotiBadge();
+      showToast(`🔔 ${payload.new.from_handle}님의 새 알림이 있어요`);
+    })
+    .subscribe();
+}
+
+// 패널 외부 클릭 시 닫기
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notiPanel');
+  const btn = document.getElementById('notiBtn');
+  if(panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
 </script>
 </body>
 </html>
